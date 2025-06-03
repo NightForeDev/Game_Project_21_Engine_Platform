@@ -15,32 +15,25 @@ class Player(Entity):
         self.on_ground = False
 
     def update(self, dt, keys, ground_y):
-        # Horizontal movement
         self.vx = 0
         if keys[pygame.K_LEFT]:
             self.vx = -self.MOVE_SPEED
         elif keys[pygame.K_RIGHT]:
             self.vx = self.MOVE_SPEED
 
-        # Jumping
         if keys[pygame.K_SPACE] and self.on_ground:
             self.vy = self.JUMP_VELOCITY
             self.on_ground = False
 
-        # Apply gravity
         self.vy += self.GRAVITY * dt
-
-        # Update position
         self.x += self.vx * dt
         self.y += self.vy * dt
 
-        # Floor collision
         if self.y + self.HEIGHT >= ground_y:
             self.y = ground_y - self.HEIGHT
             self.vy = 0
             self.on_ground = True
 
-        # Keep player inside screen horizontally
         self.x = max(0, min(self.x, 640 - self.WIDTH))
 
     def render(self, surface):

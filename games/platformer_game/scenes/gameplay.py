@@ -7,11 +7,16 @@ class GameplayScene(Scene):
         super().__init__(game)
         self.player = Player(100, 300)
         self.ground_y = 400  # y position of the floor
+        self.input = game.input_manager
+
+        self.input.bind_key(pygame.K_ESCAPE, self.quit_game)
+
+    def quit_game(self):
+        self.game.running = False
 
     def handle_events(self, events):
         for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.game.running = False
+            self.input.handle_event(event)
 
     def update(self, dt):
         keys = pygame.key.get_pressed()

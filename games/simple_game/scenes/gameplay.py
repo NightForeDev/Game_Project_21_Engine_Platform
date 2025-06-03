@@ -6,12 +6,16 @@ class GameplayScene(Scene):
     def __init__(self, game):
         super().__init__(game)
         self.player = Player(300, 220)
+        self.input_manager = game.input_manager
+
+        self.input_manager.bind_key(pygame.K_ESCAPE, self.quit_game)
+
+    def quit_game(self):
+        self.game.running = False
 
     def handle_events(self, events):
         for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.game.running = False
+            self.input_manager.handle_event(event)
 
     def update(self, dt):
         keys = pygame.key.get_pressed()

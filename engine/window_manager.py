@@ -1,5 +1,3 @@
-# engine/window_manager.py
-
 import pygame
 
 class WindowManager:
@@ -30,6 +28,12 @@ class WindowManager:
             self.screen = pygame.display.set_mode((self.base_width, self.base_height), pygame.FULLSCREEN)
         else:
             self.screen = pygame.display.set_mode((self.base_width, self.base_height), pygame.RESIZABLE)
+
+    def toggle_maximize_restore(self):
+        if self.is_maximized:
+            self.restore()
+        else:
+            self.maximize()
 
     def maximize(self):
         display_info = pygame.display.Info()
