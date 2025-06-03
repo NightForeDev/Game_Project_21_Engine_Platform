@@ -14,14 +14,14 @@ class Player(Entity):
         self.vy = 0
         self.on_ground = False
 
-    def update(self, dt, keys, ground_y):
+    def update(self, dt, move_left, move_right, jump, ground_y):
         self.vx = 0
-        if keys[pygame.K_LEFT]:
+        if move_left:
             self.vx = -self.MOVE_SPEED
-        elif keys[pygame.K_RIGHT]:
+        elif move_right:
             self.vx = self.MOVE_SPEED
 
-        if keys[pygame.K_SPACE] and self.on_ground:
+        if jump and self.on_ground:
             self.vy = self.JUMP_VELOCITY
             self.on_ground = False
 

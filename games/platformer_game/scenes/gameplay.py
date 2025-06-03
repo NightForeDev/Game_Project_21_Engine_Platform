@@ -6,21 +6,36 @@ class GameplayScene(Scene):
     def __init__(self, game):
         super().__init__(game)
         self.player = Player(100, 300)
-        self.ground_y = 400  # y position of the floor
-        self.input = game.input_manager
+        self.ground_y = 400
+        self.input_manager = game.input_manager
+        self.input_manager.clear_callbacks()
 
-        self.input.bind_key(pygame.K_ESCAPE, self.quit_game)
+        self.input_manager.bind_key(pygame.K_ESCAPE, self.quit_game)
+        self.input_manager.bind_key(pygame.K_m, self.open_menu)
+
+        self.input_manager.map_action('move_left', pygame.K_LEFT)
+        self.input_manager.map_action('move_right', pygame.K_RIGHT)
+        self.input_manager.map_action('jump', pygame.K_SPACE)
+
+    def open_menu(self):
+        from games.platformer_game.scenes.menu import MenuScene
+        self.game.change_scene(MenuScene)
+        print("ok")
 
     def quit_game(self):
         self.game.running = False
 
     def handle_events(self, events):
         for event in events:
-            self.input.handle_event(event)
+            self.input_manager.handle_event(event)
 
     def update(self, dt):
-        keys = pygame.key.get_pressed()
-        self.player.update(dt, keys, self.ground_y)
+        # Instead of raw keys, query actions:
+        move_left = self.input_manager.is_action_active('move_left')
+        move_right = self.input_manager.is_action_active('move_right')
+        jump = self.input_manager.is_action_active('jump')
+
+        self.player.update(dt, move_left, move_right, jump, self.ground_y)
 
     def render(self, surface):
         surface.fill((135, 206, 235))  # Sky blue background

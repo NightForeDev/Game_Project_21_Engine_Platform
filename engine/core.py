@@ -8,6 +8,8 @@ class Game:
         self.config = config
         self.clock = pygame.time.Clock()
         self.running = True
+        self.scene = None
+        self.previous_scene = None
 
         self.window_manager = WindowManager(self.config.RESOLUTION[0], self.config.RESOLUTION[1], self.config.TITLE)
         self.input_manager = InputManager()
@@ -19,6 +21,13 @@ class Game:
         self.input_manager.bind_key(pygame.K_ESCAPE, self.quit)
         self.input_manager.bind_key(pygame.K_F11, self.window_manager.toggle_fullscreen)
         self.input_manager.bind_key(pygame.K_F5, self.window_manager.toggle_maximize_restore)
+
+    def change_scene(self, scene_class):
+        self.previous_scene = self.current_scene
+        self.current_scene = scene_class(self)
+
+    def return_to_previous_scene(self):
+        self.current_scene = self.previous_scene
 
     def quit(self):
         self.running = False
