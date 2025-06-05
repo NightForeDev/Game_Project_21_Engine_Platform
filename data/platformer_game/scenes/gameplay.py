@@ -1,6 +1,8 @@
+# data\platformer_game\scenes\gameplay.py
+
 import pygame
 from engine.scene import Scene
-from games.platformer_game.entities.player import Player
+from data.platformer_game.entities.player import Player
 
 class GameplayScene(Scene):
     def __init__(self, game):
@@ -13,14 +15,13 @@ class GameplayScene(Scene):
         self.input_manager.bind_key(pygame.K_ESCAPE, self.quit_game)
         self.input_manager.bind_key(pygame.K_m, self.open_menu)
 
-        self.input_manager.map_action('move_left', pygame.K_LEFT)
-        self.input_manager.map_action('move_right', pygame.K_RIGHT)
-        self.input_manager.map_action('jump', pygame.K_SPACE)
+        self.input_manager.map_key('move_left', pygame.K_LEFT)
+        self.input_manager.map_key('move_right', pygame.K_RIGHT)
+        self.input_manager.map_key('jump', pygame.K_SPACE)
 
     def open_menu(self):
         from games.platformer_game.scenes.menu import MenuScene
         self.game.change_scene(MenuScene)
-        print("ok")
 
     def quit_game(self):
         self.game.running = False

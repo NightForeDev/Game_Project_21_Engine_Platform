@@ -1,3 +1,5 @@
+# engine\window_manager.py
+
 import pygame
 
 class WindowManager:
@@ -50,8 +52,8 @@ class WindowManager:
     def set_zoom(self, zoom_level):
         self.zoom_level = zoom_level
 
-    def draw(self, draw_func):
-        draw_func(self.virtual_surface)
+    def render(self, render_func):
+        render_func(self.virtual_surface)
 
         if self.zoom_level != 1.0:
             scaled_surface = pygame.transform.smoothscale(

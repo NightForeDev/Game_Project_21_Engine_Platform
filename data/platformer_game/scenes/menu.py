@@ -1,3 +1,5 @@
+# data\platformer_game\scenes\menu.py
+
 import pygame
 from engine.scene import Scene
 
@@ -29,7 +31,7 @@ class MenuScene(Scene):
                     # Assign new key for selected action
                     new_key = event.key
                     action = self.ACTIONS[self.selected_index]
-                    self.input_manager.map_action(action, new_key)
+                    self.input_manager.map_key(action, new_key)
                     self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
                     self.waiting_for_key = False
                 else:

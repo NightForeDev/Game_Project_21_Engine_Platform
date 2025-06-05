@@ -1,6 +1,8 @@
+# data\simple_game\scenes\gameplay.py
+
 import pygame
 from engine.scene import Scene
-from games.simple_game.entities.player import Player
+from data.simple_game.entities.player import Player
 
 class GameplayScene(Scene):
     def __init__(self, game):
@@ -12,10 +14,10 @@ class GameplayScene(Scene):
         self.input_manager.bind_key(pygame.K_ESCAPE, self.quit_game)
 
         # Map movement keys to actions
-        self.input_manager.map_action('move_left', pygame.K_LEFT)
-        self.input_manager.map_action('move_right', pygame.K_RIGHT)
-        self.input_manager.map_action('move_up', pygame.K_UP)
-        self.input_manager.map_action('move_down', pygame.K_DOWN)
+        self.input_manager.map_key('move_left', pygame.K_LEFT)
+        self.input_manager.map_key('move_right', pygame.K_RIGHT)
+        self.input_manager.map_key('move_up', pygame.K_UP)
+        self.input_manager.map_key('move_down', pygame.K_DOWN)
 
     def quit_game(self):
         self.game.running = False

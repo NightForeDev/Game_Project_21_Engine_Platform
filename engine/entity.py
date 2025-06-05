@@ -1,3 +1,5 @@
+# engine\entity.py
+
 class Entity:
     def __init__(self, x, y):
         self.x = x

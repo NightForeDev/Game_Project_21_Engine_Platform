@@ -1,3 +1,5 @@
+# data\platformer_game\entities\player.py
+
 import pygame
 from engine.entity import Entity
 
