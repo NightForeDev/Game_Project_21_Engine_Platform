@@ -79,8 +79,11 @@ class LauncherScene(Scene):
         if not self.debug:
             pygame.display.iconify()
 
+    def handle_events(self, events):
+        pass
+
     def update(self, dt):
-        super().update(dt)
+        pass
 
     def render(self, surface):
         surface.fill(self.bg_color)

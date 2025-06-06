@@ -3,6 +3,7 @@
 import pygame
 from engine.scene import Scene
 from data.platformer_game.entities.player import Player
+from data.platformer_game.scenes.menu import MenuScene
 
 class GameplayScene(Scene):
     def __init__(self, game):
@@ -20,7 +21,6 @@ class GameplayScene(Scene):
         self.input_manager.map_key('jump', pygame.K_SPACE)
 
     def open_menu(self):
-        from games.platformer_game.scenes.menu import MenuScene
         self.game.change_scene(MenuScene)
 
     def quit_game(self):

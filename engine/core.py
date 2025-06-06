@@ -44,6 +44,7 @@ class Core:
 
                 self.input_manager.handle_event(event)
 
+            self.current_scene.handle_events(events)
             self.current_scene.update(dt)
             self.window_manager.render(self.current_scene.render)
 

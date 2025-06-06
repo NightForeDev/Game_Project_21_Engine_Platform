@@ -20,6 +20,9 @@ class WindowManager:
         self.zoom_level = 1.0
         self.virtual_surface = pygame.Surface((width, height))
 
+    def get_size(self):
+        return int(self.base_width * self.zoom_level), int(self.base_height * self.zoom_level)
+
     def set_caption(self, title):
         self.title = title
         pygame.display.set_caption(title)
