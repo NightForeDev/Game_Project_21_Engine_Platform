@@ -2,37 +2,40 @@ import sys
 import importlib
 import traceback
 
-def run_game_or_launcher(name):
+DATA_FOLDER = "data"
+DEFAULT_MODULE = "launcher"
+MAIN_FILE = "main"
+
+
+def load_main_module(name):
+    """Import the main module from a given game folder."""
+    module_path = f"{DATA_FOLDER}.{name}.{MAIN_FILE}"
     try:
-        game_module = importlib.import_module(f"data.{name}.main")
-    except ModuleNotFoundError as e:
-        print(f"ERROR: Module 'data.{name}.main' not found.\n{e}")
-        return False
-    except Exception as e:
-        print(f"ERROR: Failed to import 'data.{name}.main':\n{traceback.format_exc()}")
-        return False
+        return importlib.import_module(module_path)
+    except ModuleNotFoundError:
+        print(f"[ERROR] Could not find module: {module_path}")
+    except Exception:
+        print(f"[ERROR] Unexpected error while importing '{module_path}':\n{traceback.format_exc()}")
+    return None
 
-    if not hasattr(game_module, "main"):
-        print(f"ERROR: Module 'data.{name}.main' does not have a 'main()' function.")
-        return False
 
+def run_main_module(module, name):
+    """Run the 'main()' function from the imported module."""
     try:
-        game_module.main()
-    except Exception as e:
-        print(f"ERROR: Exception occurred while running 'data.{name}.main.main()':\n{traceback.format_exc()}")
-        return False
+        module.main()
+        return True
+    except AttributeError:
+        print(f"[ERROR] Module '{DATA_FOLDER}.{name}.{MAIN_FILE}' does not have a '{MAIN_FILE}()' function.")
+    except Exception:
+        print(f"[ERROR] Exception occurred while running '{DATA_FOLDER}.{name}.{MAIN_FILE}.main()':\n{traceback.format_exc()}")
+    return False
 
-    return True
+def run(name):
+    """Load and run the module."""
+    module = load_main_module(name)
+    run_main_module(module, name)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-        success = run_game_or_launcher(name)
-        if not success:
-            print("Exiting due to previous errors.")
-    else:
-        # No args: launch the launcher by default
-        success = run_game_or_launcher("launcher")
-        if not success:
-            print("Failed to launch the launcher, exiting.")
+    target = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MODULE
+    run(target)
