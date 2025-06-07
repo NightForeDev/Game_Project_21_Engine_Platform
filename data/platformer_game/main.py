@@ -1,16 +1,10 @@
 # data\platformer_game\main.py
 
+from .scenes.initial_scene import InitialScene
+from engine.config_loader import load_config
 from engine.core import Core
-from data.platformer_game.scenes.gameplay import GameplayScene
-
-class Config:
-    RESOLUTION = (640, 480)
-    TITLE = "Simple Platformer"
-    FPS = 60
 
 def main():
-    game = Core(GameplayScene, Config)
+    config = load_config()
+    game = Core(InitialScene, config)
     game.run()
-
-if __name__ == "__main__":
-    main()

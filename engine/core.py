@@ -5,15 +5,20 @@ from engine.window_manager import WindowManager
 from engine.input_manager import InputManager
 
 class Core:
-    def __init__(self, initial_scene_class, config):
+    def __init__(self, initial_scene_class, app_config):
         pygame.init()
-        self.config = config
+        self.app_config = app_config
+        self.config = app_config[self.__class__.__name__]
+
         self.clock = pygame.time.Clock()
         self.running = True
         self.scene = None
         self.previous_scene = None
 
-        self.window_manager = WindowManager(self.config.RESOLUTION[0], self.config.RESOLUTION[1], self.config.TITLE)
+
+        self.fps = self.config["fps"]
+
+        self.window_manager = WindowManager(self.app_config)
         self.input_manager = InputManager()
 
         self.setup_shortcuts()
@@ -36,7 +41,7 @@ class Core:
 
     def run(self):
         while self.running:
-            dt = self.clock.tick(self.config.FPS) / 1000
+            dt = self.clock.tick(self.fps) / 1000
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:

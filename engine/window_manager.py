@@ -3,22 +3,26 @@
 import pygame
 
 class WindowManager:
-    def __init__(self, width, height, title="Game", fullscreen=False):
-        self.base_width = width
-        self.base_height = height
-        self.title = title
-        self.fullscreen = fullscreen
+    def __init__(self, config):
+        class_name = self.__class__.__name__
+        self.core_config = config.get("Core", {})
+        self.config = config.get(class_name, {})
+
+        self.base_width = self.config["width"]
+        self.base_height = self.config["height"]
+        self.title = self.core_config["title"]
+        self.fullscreen = False
         self.is_maximized = False
 
         self.flags = pygame.RESIZABLE
-        if fullscreen:
+        if self.fullscreen:
             self.flags |= pygame.FULLSCREEN
 
-        self.screen = pygame.display.set_mode((width, height), self.flags)
-        pygame.display.set_caption(title)
+        self.screen = pygame.display.set_mode((self.base_width, self.base_height), self.flags)
+        pygame.display.set_caption(self.title)
 
         self.zoom_level = 1.0
-        self.virtual_surface = pygame.Surface((width, height))
+        self.virtual_surface = pygame.Surface((self.base_width, self.base_height))
 
     def get_size(self):
         return int(self.base_width * self.zoom_level), int(self.base_height * self.zoom_level)

@@ -1,4 +1,4 @@
-# data\launcher\scenes\launcher_scene.py
+# data\launcher\scenes\initial_scene.py
 
 import os
 import sys
@@ -11,7 +11,7 @@ SHARED_FOLDER = "shared"
 CURRENT_FOLDER = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 IGNORE_FOLDERS = {CURRENT_FOLDER, SHARED_FOLDER}
 
-class LauncherScene(Scene):
+class InitialScene(Scene):
     def __init__(self, game, debug=False):
         super().__init__(game)
 

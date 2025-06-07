@@ -1,11 +1,11 @@
-# data\platformer_game\scenes\gameplay.py
+# data\platformer_game\scenes\initial_scene.py
 
 import pygame
 from engine.scene import Scene
 from data.platformer_game.entities.player import Player
 from data.platformer_game.scenes.menu import MenuScene
 
-class GameplayScene(Scene):
+class InitialScene(Scene):
     def __init__(self, game):
         super().__init__(game)
         self.player = Player(100, 300)

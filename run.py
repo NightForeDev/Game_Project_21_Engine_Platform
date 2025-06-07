@@ -24,8 +24,6 @@ def run_main_module(module, name):
     try:
         module.main()
         return True
-    except AttributeError:
-        print(f"[ERROR] Module '{DATA_FOLDER}.{name}.{MAIN_FILE}' does not have a '{MAIN_FILE}()' function.")
     except Exception:
         print(f"[ERROR] Exception occurred while running '{DATA_FOLDER}.{name}.{MAIN_FILE}.main()':\n{traceback.format_exc()}")
     return False
