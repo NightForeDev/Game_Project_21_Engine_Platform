@@ -1,14 +1,15 @@
 # engine\core.py
 
 import pygame
+from engine.config_loader import load_config
 from engine.window_manager import WindowManager
 from engine.input_manager import InputManager
 
 class Core:
-    def __init__(self, initial_scene_class, app_config):
+    def __init__(self, initial_scene_class):
         pygame.init()
-        self.app_config = app_config
-        self.config = app_config[self.__class__.__name__]
+        self.app_config = load_config()
+        self.config = self.app_config[self.__class__.__name__]
 
         self.clock = pygame.time.Clock()
         self.running = True

@@ -5,6 +5,9 @@ import inspect
 import os
 from collections.abc import Mapping
 
+from data.shared.constants import CONFIG_FILENAME, SHARED_FOLDER
+
+
 def deep_merge_dicts(a, b):
     """Recursively merge dict b into dict a (b overrides a)."""
     for key, value in b.items():
@@ -15,14 +18,21 @@ def deep_merge_dicts(a, b):
     return a
 
 def load_config():
-    # Detect folder of the caller
-    caller_file = inspect.stack()[1].filename
-    caller_dir = os.path.dirname(caller_file)
+    # Detect folder of the caller (engine\config_loader.py -> engine\core.py -> data\{app}\main.py)
+    caller_file = inspect.stack()[2].filename
+    app_path = os.path.dirname(caller_file)
 
-    config_path = os.path.join(caller_dir, "config.json")
-    config = load_json(config_path)
+    # Load app-specific config
+    local_config_path = os.path.join(app_path, CONFIG_FILENAME)
+    local_config = load_json(local_config_path)
 
-    return config
+    # Load shared config (data/shared/config.json)
+    data_root = os.path.dirname(app_path)
+    shared_config_path = os.path.join(data_root, SHARED_FOLDER, CONFIG_FILENAME)
+    shared_config = load_json(shared_config_path)
+
+    # Merge shared into local (local overrides shared)
+    return deep_merge_dicts(shared_config, local_config)
 
 def load_json(path):
     if os.path.exists(path):

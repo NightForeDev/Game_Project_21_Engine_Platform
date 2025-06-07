@@ -4,10 +4,10 @@ import os
 import sys
 import subprocess
 import pygame
+
+from data.shared.constants import SHARED_FOLDER, DATA_FOLDER
 from engine.scene import Scene
 
-DATA_FOLDER = "data"
-SHARED_FOLDER = "shared"
 CURRENT_FOLDER = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 IGNORE_FOLDERS = {CURRENT_FOLDER, SHARED_FOLDER}
 
@@ -60,22 +60,22 @@ class InitialScene(Scene):
         else:
             self.quit_game()
 
-    def launch_game(self, name):
+    def launch_game(self, game_name):
         if not self.debug and self.launched_games:
             print("A game is already running.")
             return
 
-        proc = self.launched_games.get(name)
+        proc = self.launched_games.get(game_name)
         if proc and proc.poll() is None:
-            print(f"Game '{name}' is already running.")
+            print(f"Game '{game_name}' is already running.")
             return
 
-        launcher_path = os.path.abspath(sys.argv[0])
+        print(f"Launching game '{game_name}'...")
+        run_path = os.path.abspath(sys.argv[0])
+        proc = subprocess.Popen([sys.executable, run_path, game_name])
+        self.launched_games[game_name] = proc
 
-        print(f"Launching game '{name}'...")
-        proc = subprocess.Popen([sys.executable, launcher_path, name])
-        self.launched_games[name] = proc
-
+        # Minimize the window
         if not self.debug:
             pygame.display.iconify()
 

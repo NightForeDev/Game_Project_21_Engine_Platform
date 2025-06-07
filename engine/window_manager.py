@@ -3,14 +3,13 @@
 import pygame
 
 class WindowManager:
-    def __init__(self, config):
+    def __init__(self, app_config):
         class_name = self.__class__.__name__
-        self.core_config = config.get("Core", {})
-        self.config = config.get(class_name, {})
+        self.config = app_config[class_name]
 
+        self.title = self.config["title"]
         self.base_width = self.config["width"]
         self.base_height = self.config["height"]
-        self.title = self.core_config["title"]
         self.fullscreen = False
         self.is_maximized = False
 
