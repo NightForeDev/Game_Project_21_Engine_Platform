@@ -8,14 +8,14 @@ from data.shared.constants import DATA_FOLDER, DEFAULT_STARTUP_APP_NAME, DEFAULT
 
 
 def load_main_module(name):
-    """Import the main module from a given game folder."""
+    """Import the main module from a given app folder."""
     module_path = f"{DATA_FOLDER}.{name}.{DEFAULT_APP_FILE_NAME}"
     try:
         return importlib.import_module(module_path)
     except Exception:
-        print(f"[ERROR] Unexpected error while importing '{module_path}':\n{traceback.format_exc()}")
+        print(f"[ERROR] Exception occurred while importing '{module_path}':"
+              f"\n{traceback.format_exc()}")
     return None
-
 
 def run_main_module(module, name):
     """Run the 'main()' function from the imported module."""
@@ -23,7 +23,8 @@ def run_main_module(module, name):
         module.main()
         return True
     except Exception:
-        print(f"[ERROR] Exception occurred while running '{DATA_FOLDER}.{name}.{DEFAULT_APP_FILE_NAME}.main()':\n{traceback.format_exc()}")
+        print(f"[ERROR] Exception occurred while running '{DATA_FOLDER}.{name}.{DEFAULT_APP_FILE_NAME}.main()':"
+              f"\n{traceback.format_exc()}")
     return False
 
 def run(name):

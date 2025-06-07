@@ -28,7 +28,7 @@ class MenuScene(Scene):
         self.blink_visible = True
 
     def exit_menu(self):
-        self.game.return_to_previous_scene()
+        self.game.return_scene()
 
     def select_up(self):
         if not self.waiting_for_key:

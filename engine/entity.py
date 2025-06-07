@@ -1,9 +1,8 @@
 # engine\entity.py
 
 class Entity:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self):
+        pass
 
     def update(self, dt):
         pass

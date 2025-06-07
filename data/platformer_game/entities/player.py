@@ -11,7 +11,9 @@ class Player(Entity):
     MOVE_SPEED = 250
 
     def __init__(self, x, y):
-        super().__init__(x, y)
+        super().__init__()
+        self.x = x
+        self.y = y
         self.vx = 0
         self.vy = 0
         self.on_ground = False

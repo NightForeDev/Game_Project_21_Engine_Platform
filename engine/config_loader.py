@@ -5,7 +5,7 @@ import inspect
 import os
 from collections.abc import Mapping
 
-from data.shared.constants import CONFIG_FILENAME, SHARED_FOLDER
+from data.shared.constants import CONFIG_FILENAME, SHARED_PATH
 
 
 def deep_merge_dicts(a, b):
@@ -18,6 +18,7 @@ def deep_merge_dicts(a, b):
     return a
 
 def load_config():
+    """Load and merge configuration files for the current app."""
     # Detect folder of the caller (engine\config_loader.py -> engine\core.py -> data\{app}\main.py)
     caller_file = inspect.stack()[2].filename
     app_path = os.path.dirname(caller_file)
@@ -27,14 +28,14 @@ def load_config():
     local_config = load_json(local_config_path)
 
     # Load shared config (data/shared/config.json)
-    data_root = os.path.dirname(app_path)
-    shared_config_path = os.path.join(data_root, SHARED_FOLDER, CONFIG_FILENAME)
+    shared_config_path = os.path.join(SHARED_PATH, CONFIG_FILENAME)
     shared_config = load_json(shared_config_path)
 
     # Merge shared into local (local overrides shared)
     return deep_merge_dicts(shared_config, local_config)
 
 def load_json(path):
+    """Load JSON data from a file if it exists."""
     if os.path.exists(path):
         with open(path, "r") as f:
             return json.load(f)
