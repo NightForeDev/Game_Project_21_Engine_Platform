@@ -41,9 +41,9 @@ class Core:
 
     def register_shortcuts(self):
         """Bind system keys."""
-        self.input_manager.bind_key(pygame.K_ESCAPE, self.quit_game)
-        self.input_manager.bind_key(pygame.K_F11, self.window_manager.toggle_fullscreen)
-        self.input_manager.bind_key(pygame.K_F5, self.window_manager.toggle_maximize_restore)
+        self.input_manager.bind_key_down_global(pygame.K_ESCAPE, self.quit_game)
+        self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
+        self.input_manager.bind_key_down_global(pygame.K_F5, self.window_manager.toggle_maximize_restore)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""

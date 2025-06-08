@@ -22,7 +22,7 @@ class MenuScene(Scene):
         self.waiting_for_key = False
         self.message = "Use Up/Down to select, Enter to rebind, R to return"
 
-        self.input_manager.bind_key(pygame.K_r, self.exit_menu)
+        self.input_manager.bind_key_down(pygame.K_m, self.exit_menu)
 
         self.blink_timer = 0
         self.blink_visible = True
@@ -46,7 +46,7 @@ class MenuScene(Scene):
 
     def cancel_rebind(self):
         self.waiting_for_key = False
-        self.message = "Rebinding cancelled. Use Up/Down to select, Enter to rebind, R to return"
+        self.message = "Rebinding cancelled. Use Up/Down to select, Enter to rebind, M to return"
 
     def assign_key(self, event):
         if self.waiting_for_key:
@@ -56,7 +56,7 @@ class MenuScene(Scene):
 
             new_key = event.key
             action = self.ACTIONS[self.selected_index]
-            self.input_manager.map_key(action, new_key)
+            self.input_manager.map_action_to_key(action, new_key)
             self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
             self.waiting_for_key = False
         else:
@@ -92,7 +92,7 @@ class MenuScene(Scene):
         y = self.padding + msg_surf.get_height() + (self.font_size // 2)
 
         for i, action in enumerate(self.ACTIONS):
-            key = self.input_manager.key_bindings.get(action)
+            key = self.input_manager.action_to_key.get(action)
             key_name = pygame.key.name(key) if key else "Unbound"
             text = f"{action}: {key_name}"
 

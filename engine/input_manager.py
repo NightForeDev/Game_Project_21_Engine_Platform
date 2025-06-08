@@ -1,71 +1,152 @@
-# engine\input_manager.py
+# engine/input_manager.py
 
 import pygame
 
 class InputManager:
     def __init__(self):
-        self.key_bindings = {}      # action -> key
-        self.key_states = {}        # key -> bool (pressed)
-        self.key_callbacks = {}     # key -> function
+        # Global key/button callbacks
+        self.global_key_down_callbacks = {}     # key -> function
+        self.global_key_up_callbacks = {}       # key -> function
+        self.global_mouse_down_callbacks = {}   # button -> function
+        self.global_mouse_up_callbacks = {}     # button -> function
 
-        self.mouse_bindings = {}
-        self.mouse_states = {}
-        self.mouse_callbacks = {}
+        # Local key/button callbacks
+        self.key_down_callbacks = {}            # key -> function
+        self.key_up_callbacks = {}              # key -> function
+        self.mouse_down_callbacks = {}          # button -> function
+        self.mouse_up_callbacks = {}            # button -> function
 
-        self.action_to_key = {}
-        self.key_to_action = {}
+        # Action bindings
+        self.action_to_key = {}                 # action -> key
+        self.action_to_mouse = {}               # action -> button
 
-    def bind_key(self, key, callback):
-        """Assign callback to key press."""
-        self.key_callbacks[key] = callback
-
-    def bind_mouse(self, button, callback):
-        """Assign callback to mouse press."""
-        self.mouse_callbacks[button] = callback
+        # Key/button states (held)
+        self.key_state = {}                     # key -> held
+        self.mouse_state = {}                   # button -> held
 
     def clear_callbacks(self):
+        """Remove local callbacks."""
+        self.key_down_callbacks.clear()
+        self.key_up_callbacks.clear()
+        self.mouse_down_callbacks.clear()
+        self.mouse_up_callbacks.clear()
+
+    def clear_all_callbacks(self):
         """Remove all callbacks."""
-        self.key_callbacks.clear()
-        self.mouse_callbacks.clear()
+        self.clear_callbacks()
+        self.global_key_down_callbacks.clear()
+        self.global_key_up_callbacks.clear()
 
-    def map_key(self, action_name, key):
-        """Map action name to key."""
-        old_key = self.action_to_key.get(action_name)
-        if old_key:
-            self.key_to_action.pop(old_key, None)
+    """
+    Global callbacks
+    """
+    def bind_key_down_global(self, key, callback):
+        """Bind global callback to key press."""
+        self.global_key_down_callbacks[key] = callback
 
-        self.key_bindings[action_name] = key
-        self.action_to_key[action_name] = key
-        self.key_to_action[key] = action_name
+    def bind_key_up_global(self, key, callback):
+        """Bind global callback to key release."""
+        self.global_key_up_callbacks[key] = callback
 
-    def is_action_active(self, action_name):
-        """Check if mapped key or button is pressed."""
-        # Keys buttons
-        key = self.key_bindings.get(action_name)
-        if key is not None:
-            return self.key_states.get(key, False)
+    def bind_mouse_down_global(self, button, callback):
+        """Bind global callback to mouse press."""
+        self.global_mouse_down_callbacks[button] = callback
 
-        # Mouse buttons
-        button = self.mouse_bindings.get(action_name)
-        if button is not None:
-            return self.mouse_states.get(button, False)
+    def bind_mouse_up_global(self, button, callback):
+        """Bind global callback to mouse release."""
+        self.global_mouse_up_callbacks[button] = callback
 
+    """
+    Local callbacks
+    """
+    def bind_key_down(self, key, callback):
+        """Bind local callback to key press."""
+        self.key_down_callbacks[key] = callback
+
+    def bind_key_up(self, key, callback):
+        """Bind local callback to key release."""
+        self.key_up_callbacks[key] = callback
+
+    def bind_mouse_down(self, button, callback):
+        """Bind local callback to mouse press."""
+        self.mouse_down_callbacks[button] = callback
+
+    def bind_mouse_up(self, button, callback):
+        """Bind local callback to mouse release."""
+        self.mouse_up_callbacks[button] = callback
+
+    """
+    Key/Button states
+    """
+    def map_action_to_key(self, action, key):
+        """Map action to a keyboard key."""
+        self.action_to_key[action] = key
+
+    def map_action_to_mouse(self, action, button):
+        """Map action to a mouse button."""
+        self.action_to_mouse[action] = button
+
+    def is_action_active(self, action):
+        """Check if the key or mouse button bound to an action is currently held down."""
+        key = self.action_to_key.get(action)
+        if key is not None and self.key_state.get(key, False):
+            return True
+
+        button = self.action_to_mouse.get(action)
+        if button is not None and self.mouse_state.get(button, False):
+            return True
+
+        return False
+
+    """
+    Event handling
+    """
     def handle_event(self, event):
-        """Process input events."""
-        # Key events
+        """Handle pygame input events."""
         if event.type == pygame.KEYDOWN:
-            self.key_states[event.key] = True
-            if event.key in self.key_callbacks and self.key_callbacks[event.key]:
-                self.key_callbacks[event.key]()
+            # Key state
+            self.key_state[event.key] = True
+
+            # Global callback
+            if event.key in self.global_key_down_callbacks:
+                self.global_key_down_callbacks[event.key]()
+
+            # Local callback
+            if event.key in self.key_down_callbacks:
+                self.key_down_callbacks[event.key]()
 
         elif event.type == pygame.KEYUP:
-            self.key_states[event.key] = False
+            # Key state
+            self.key_state[event.key] = False
 
-        # Mouse events
+            # Global callback
+            if event.key in self.global_key_up_callbacks:
+                self.global_key_up_callbacks[event.key]()
+
+            # Local callback
+            if event.key in self.key_up_callbacks:
+                self.key_up_callbacks[event.key]()
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            self.mouse_states[event.button] = True
-            if event.button in self.mouse_callbacks and self.mouse_callbacks[event.button]:
-                self.mouse_callbacks[event.button]()
+            # Button state
+            self.mouse_state[event.button] = True
+
+            # Global callback
+            if event.button in self.global_mouse_down_callbacks:
+                self.global_mouse_down_callbacks[event.button]()
+
+            # Local callback
+            if event.button in self.mouse_down_callbacks:
+                self.mouse_down_callbacks[event.button]()
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            self.mouse_states[event.button] = False
+            # Button state
+            self.mouse_state[event.button] = False
+
+            # Global callback
+            if event.button in self.global_mouse_up_callbacks:
+                self.global_mouse_up_callbacks[event.button]()
+
+            # Local callback
+            if event.button in self.mouse_up_callbacks:
+                self.mouse_up_callbacks[event.button]()

@@ -13,12 +13,11 @@ class InitialScene(Scene):
         self.input_manager = game.input_manager
         self.input_manager.clear_callbacks()
 
-        self.input_manager.bind_key(pygame.K_ESCAPE, self.game.quit_game)
-        self.input_manager.bind_key(pygame.K_m, self.open_menu)
+        self.input_manager.bind_key_down(pygame.K_m, self.open_menu)
 
-        self.input_manager.map_key('move_left', pygame.K_LEFT)
-        self.input_manager.map_key('move_right', pygame.K_RIGHT)
-        self.input_manager.map_key('jump', pygame.K_SPACE)
+        self.input_manager.map_action_to_key('move_left', pygame.K_LEFT)
+        self.input_manager.map_action_to_key('move_right', pygame.K_RIGHT)
+        self.input_manager.map_action_to_key('jump', pygame.K_SPACE)
 
     def open_menu(self):
         self.game.change_scene(MenuScene)

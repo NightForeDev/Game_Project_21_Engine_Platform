@@ -22,10 +22,10 @@ class InitialScene(Scene):
         self.selected_index = 0
 
         self.games = self.list_games()
-        self.input_manager.bind_mouse(1, self.mouse_left_click)
-        self.input_manager.bind_key(pygame.K_UP, self.select_up)
-        self.input_manager.bind_key(pygame.K_DOWN, self.select_down)
-        self.input_manager.bind_key(pygame.K_RETURN, self.select_confirm)
+        self.input_manager.bind_mouse_down(1, self.mouse_left_click)
+        self.input_manager.bind_key_down(pygame.K_UP, self.select_up)
+        self.input_manager.bind_key_down(pygame.K_DOWN, self.select_down)
+        self.input_manager.bind_key_down(pygame.K_RETURN, self.select_confirm)
 
         self.launched_games = {}
         self.debug = debug
