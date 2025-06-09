@@ -23,8 +23,7 @@ class InitialScene(Scene):
         self.game.change_scene(MenuScene)
 
     def handle_events(self, events):
-        for event in events:
-            self.input_manager.handle_event(event)
+        pass
 
     def update(self, dt):
         # Instead of raw keys, query actions:

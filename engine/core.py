@@ -4,6 +4,7 @@ import random
 import pygame
 
 from engine.config_loader import load_config
+from engine.debug import Debug
 from engine.window_manager import WindowManager
 from engine.input_manager import InputManager
 
@@ -27,6 +28,7 @@ class Core:
         self.dt = self.clock.tick(self.fps) / 1000
 
         # Manager Attributes
+        self.debug = Debug(self)
         self.window_manager = WindowManager(self.app_config)
         self.input_manager = InputManager()
 
@@ -42,8 +44,9 @@ class Core:
     def register_shortcuts(self):
         """Bind system keys."""
         self.input_manager.bind_key_down_global(pygame.K_ESCAPE, self.quit_game)
-        self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
+        self.input_manager.bind_key_down_global(pygame.K_F1, self.debug.toggle)
         self.input_manager.bind_key_down_global(pygame.K_F5, self.window_manager.toggle_maximize_restore)
+        self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""
@@ -83,10 +86,12 @@ class Core:
     def update(self):
         """Update current scene."""
         self.current_scene.update(self.dt)
+        self.debug.update()
 
     def render(self):
         """Render current scene."""
         self.window_manager.render(self.current_scene.render)
+        self.window_manager.render(self.debug.draw)
 
     def quit_game(self):
         """Exit the game."""
