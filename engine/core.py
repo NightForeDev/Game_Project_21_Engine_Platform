@@ -39,13 +39,18 @@ class Core:
 
         # Class Initialization
         self.register_shortcuts()
+        self.init_scene = initial_scene_class
         self.current_scene = initial_scene_class(self)
+
+    def restart_game(self):
+        self.__init__(self.init_scene)
 
     def register_shortcuts(self):
         """Bind system keys."""
         self.input_manager.bind_key_down_global(pygame.K_ESCAPE, self.quit_game)
         self.input_manager.bind_key_down_global(pygame.K_F1, self.debug.toggle)
-        self.input_manager.bind_key_down_global(pygame.K_F5, self.window_manager.toggle_maximize_restore)
+        self.input_manager.bind_key_down_global(pygame.K_F4, self.window_manager.toggle_maximize_restore)
+        self.input_manager.bind_key_down_global(pygame.K_F5, self.restart_game)
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
 
     def change_scene(self, scene_class):
