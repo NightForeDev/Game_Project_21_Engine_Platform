@@ -1,4 +1,5 @@
 # engine\window_manager.py
+import os
 
 import pygame
 
@@ -22,6 +23,31 @@ class WindowManager:
 
         self.zoom_level = 1.0
         self.virtual_surface = pygame.Surface((self.base_width, self.base_height))
+
+        test = False
+        if test:
+            # Common Attributes
+
+            # Set the environment variable to center the game window.
+            os.environ['SDL_VIDEO_CENTERED'] = '1'
+
+            # Game Attributes
+            self.title = None
+            self.game_size = None
+
+            # Display Attributes
+            self.screen_info = pygame.display.Info()
+            self.screen_scaled = None
+            self.screen_gap = None
+            self.display_factor = 1
+            self.display = pygame.display.set_mode((0, 0), pygame.HIDDEN)
+            self.surface = pygame.Surface((0, 0))
+
+            # Flags Attributes
+            self.is_fullscreen = None
+            self.is_resizable = None
+            self.is_maximized = None
+            self.flags = None
 
     def get_size(self):
         return int(self.base_width * self.zoom_level), int(self.base_height * self.zoom_level)
