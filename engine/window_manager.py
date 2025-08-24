@@ -1,4 +1,5 @@
 # engine\window_manager.py
+
 import ctypes
 import os
 import sys
@@ -41,8 +42,8 @@ class WindowManager:
         Window Attributes:
             flags (int): Current Pygame display flags
             maximized (bool): Whether window is maximized
-            surface (pygame.Surface): Internal rendering surface
-            display (pygame.Surface): Window display surface
+            render_surface (pygame.Surface): Rendering surface used for drawing.
+            window_surface (pygame.Surface): Display surface shown on the window.
 
         Debug Attributes:
             screen_info (pygame.display.Info): Monitor info
@@ -102,13 +103,14 @@ class WindowManager:
         # Window Attributes
         self.flags = None
         self.maximized = None
-        self.surface = None
-        self.display = None
+        self.render_surface = None
+        self.window_surface = None
 
         # Debug Attributes
         self.screen_info = pygame.display.Info()
         self.screen_scaled = None
-        self.screen_gap = None
+        self.screen_gap = (0, 0)
+        self.scale_factor = None
 
         # Set the environment variable to center the game window.
         os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -130,7 +132,7 @@ class WindowManager:
         self.set_flags(self.config['resizable'], self.config['fullscreen'])
         self.set_base_size(self.config['base_width'], self.config['base_height'])
         self.set_window_size(self.config['width'], self.config['height'])
-        self.display = pygame.display.set_mode((self.width, self.height), self.flags)
+        self.window_surface = pygame.display.set_mode((self.width, self.height), self.flags)
 
     def set_caption(self, version=None, title=None, display_version=None, display_fps=None):
         """
@@ -220,10 +222,6 @@ class WindowManager:
         self.width = width
         self.height = height
 
-        # Update scaling factors
-        self.scale_w = self.width / self.base_width
-        self.scale_h = self.height / self.base_height
-
         # Apply the new window size
         self._update_surface()
 
@@ -284,7 +282,7 @@ class WindowManager:
         self.flags = self._compute_flags()
 
         # Apply new flag
-        self.display = pygame.display.set_mode((self.width, self.height), self.flags)
+        self.window_surface = pygame.display.set_mode((self.width, self.height), self.flags)
 
     def toggle_fullscreen(self):
         """
@@ -297,7 +295,7 @@ class WindowManager:
         self.flags = self._compute_flags()
 
         # Apply new flag
-        self.display = pygame.display.set_mode((self.width, self.height), self.flags)
+        self.window_surface = pygame.display.set_mode((self.width, self.height), self.flags)
 
     def toggle_maximize_restore(self):
         """
@@ -354,15 +352,58 @@ class WindowManager:
         """
         Updates the window surface.
         """
-        self.surface = pygame.Surface((self.base_width, self.base_height))
-
-    def resize(self):
-        pass
+        self.render_surface = pygame.Surface((self.base_width, self.base_height))
+        self.window_surface = pygame.display.set_mode((self.width, self.height), self.flags)
 
     """
     WIP
         get_size
     """
+    def adjust_window_surface(self):
+        """
+        Adjust the window display based on current settings.
+        """
+        # Calculate screen dimensions
+        screen_w = self.width + self.screen_gap[0] * 2
+        screen_h = self.height + self.screen_gap[1] * 2
+        screen_size = screen_w, screen_h
+
+        # Set the display mode with the calculated dimensions and provided flags.
+        self.window_surface = pygame.display.set_mode(screen_size, self.flags)
+
+    def adjust_aspect_ratio(self):
+        """
+        Adjust size to maintain aspect ratio.
+        """
+        # Get the surface sizes
+        ws_w, ws_h = self.window_surface.get_size() if self.window_surface else (self.base_width, self.base_height)
+        rs_w, rs_h = self.render_surface.get_size() if self.render_surface else (self.width, self.height)
+
+        # Calculate relative change per dimension
+        delta_w = abs(1 - ws_w / rs_w)
+        delta_h = abs(1 - ws_h / rs_h)
+
+        # Adjust window size to maintain aspect ratio
+        if delta_w < delta_h:
+            # Adjust height based on width change
+            self.scale_factor = ws_w / rs_w
+            self.width, self.height = ws_w, int(rs_h * self.scale_factor)
+        else:
+            # Adjust width based on height change
+            self.scale_factor = ws_h / rs_h
+            self.width, self.height = int(rs_w * self.scale_factor), ws_h
+
+    def resize(self):
+        """
+        Resize the window while considering maximize and screen width.
+        """
+        if not self.maximized:
+            # Adjust aspect ratio based on current display size
+            self.adjust_aspect_ratio()
+
+            # Adjust the display based on new settings
+            self.adjust_window_surface()
+
     def get_size(self):
         return self.base_width, self.base_height
 
@@ -382,8 +423,9 @@ class WindowManager:
         """
         Renders surface
         """
-        render_func(self.surface)
+        render_func(self.render_surface)
+        render_surface_scaled = pygame.transform.scale(self.render_surface, (self.width, self.height))
 
-        self.display.blit(self.surface, (0, 0))
+        self.window_surface.blit(render_surface_scaled, (0, 0))
 
         pygame.display.flip()

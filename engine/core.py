@@ -49,10 +49,14 @@ class Core:
         """Bind system keys."""
         self.input_manager.bind_key_down_global(pygame.K_ESCAPE, self.quit_game)
         self.input_manager.bind_key_down_global(pygame.K_F1, self.debug.toggle)
+        self.input_manager.bind_key_down_global(pygame.K_F3, self.test)
         self.input_manager.bind_key_down_global(pygame.K_F4, self.window_manager.toggle_maximize_restore)
         self.input_manager.bind_key_down_global(pygame.K_F5, self.restart_game)
         self.input_manager.bind_key_down_global(pygame.K_F6, self.window_manager.toggle_resizable)
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
+
+    def test(self):
+        self.window_manager.set_base_size(500, 500)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""
@@ -79,6 +83,10 @@ class Core:
         """Process pygame and user events."""
         events = pygame.event.get()
         for event in events:
+            # Handle window resizing event
+            if event.type == pygame.VIDEORESIZE:
+                self.window_manager.resize()
+
             # Handle quit event
             if event.type == pygame.QUIT:
                 self.quit_game()
