@@ -23,11 +23,17 @@
     }
   },
   "WindowManager": {
-    "title": "[Game Project 21] Engine Platform",
+    "version": "Game Project 21",
+    "title": "Engine Platform",
+    "display_version": true,
+    "display_fps": true,
+
+    "base_width": 640,
+    "base_height": 480,
     "width": 640,
     "height": 480,
+
     "fullscreen": false,
-    "resizable": true,
-    "maximized": false
+    "resizable": true
   }
 }

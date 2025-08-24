@@ -29,7 +29,7 @@ class Core:
 
         # Manager Attributes
         self.debug = Debug(self)
-        self.window_manager = WindowManager(self.app_config)
+        self.window_manager = WindowManager(self.app_config, self.clock)
         self.input_manager = InputManager()
 
         # Class Attributes
@@ -51,6 +51,7 @@ class Core:
         self.input_manager.bind_key_down_global(pygame.K_F1, self.debug.toggle)
         self.input_manager.bind_key_down_global(pygame.K_F4, self.window_manager.toggle_maximize_restore)
         self.input_manager.bind_key_down_global(pygame.K_F5, self.restart_game)
+        self.input_manager.bind_key_down_global(pygame.K_F6, self.window_manager.toggle_resizable)
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
 
     def change_scene(self, scene_class):
@@ -90,6 +91,7 @@ class Core:
 
     def update(self):
         """Update current scene."""
+        self.window_manager.update()
         self.current_scene.update(self.dt)
         self.debug.update()
 
