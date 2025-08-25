@@ -269,19 +269,6 @@ class WindowManager:
         # Apply new flag
         self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
 
-    def toggle_borderless(self):
-        """
-        Toggles borderless flag.
-        """
-        # Flip flag state
-        self.borderless = not self.borderless
-
-        # Update flags
-        self.flags = self._compute_flags()
-
-        # Apply new flag
-        self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
-
     """
     Operations
         _update_caption
@@ -375,17 +362,66 @@ class WindowManager:
             self.display_surface = pygame.display.set_mode(self.display_size, self.flags)
 
     """
-    Window State: Maximized
+    Window State Management
+        _restore_window
+        _maximize_window
+        toggle_borderless
         toggle_maximized
         detect_maximized
         adjust_maximized
     """
+    def _restore_window(self):
+        """
+        Restores the window from maximized state.
+        """
+        self.maximized = False
+        hwnd = pygame.display.get_wm_info()['window']
+        ctypes.windll.user32.ShowWindow(hwnd, SW_RESTORE)
+
+    def _maximize_window(self):
+        """
+        Maximizes the window to fill the screen.
+        """
+        self.maximized = True
+        hwnd = pygame.display.get_wm_info()['window']
+        ctypes.windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
+
+    def toggle_borderless(self):
+        """
+        Toggles borderless window mode.
+        """
+        # Flip borderless state
+        self.borderless = not self.borderless
+
+        # Disable fullscreen
+        self.fullscreen = False
+
+        # Update Pygame display flags
+        self.flags = self._compute_flags()
+
+        # Apply updated flags
+        self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
+
+        # Get native window handle
+        hwnd = pygame.display.get_wm_info()['window']
+
+        # Check if the window is currently maximized
+        is_maximized = ctypes.windll.user32.IsZoomed(hwnd)
+
+        if is_maximized:
+            # Restore maximized state to apply NOFRAME properly
+            self._restore_window()
+
+        if self.borderless:
+            # Maximize if borderless to apply borderless fullscreen
+            self._maximize_window()
+
     def toggle_maximized(self):
         """
-        Toggles between maximized and restored window states.
+        Toggle between maximized and restored states.
         """
         # Early return if action is not applicable
-        if not self.resizable or self.fullscreen:
+        if not self.resizable or self.borderless or self.fullscreen:
             return
 
         # Toggle maximize/restore state
@@ -397,13 +433,11 @@ class WindowManager:
             is_maximized = ctypes.windll.user32.IsZoomed(hwnd)
 
             if is_maximized:
-                # Restore window
-                self.maximized = False
-                ctypes.windll.user32.ShowWindow(hwnd, SW_RESTORE)
+                # Restore the window
+                self._restore_window()
             else:
                 # Maximize the window
-                self.maximized = True
-                ctypes.windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
+                self._maximize_window()
 
     def detect_maximized(self):
         """
@@ -421,7 +455,7 @@ class WindowManager:
 
     def adjust_maximized(self):
         """
-        Adjust the window and scaled content when maximized.
+        Adjust the scaled content for a maximized window.
         """
         # Get current window size
         window_width, window_height = pygame.display.get_window_size()
@@ -430,7 +464,7 @@ class WindowManager:
         self.set_scaled_size(window_width, window_height)
         self.adjust_aspect_ratio()
 
-        # Calculate horizontal and vertical gaps to center the scaled content
+        # Center content by setting gaps
         gap_x = (window_width - self.scaled_size[0]) // 2
         gap_y = (window_height - self.scaled_size[1]) // 2
         self.display_gap = gap_x, gap_y
