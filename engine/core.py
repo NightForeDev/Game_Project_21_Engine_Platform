@@ -50,7 +50,7 @@ class Core:
         self.input_manager.bind_key_down_global(pygame.K_ESCAPE, self.quit_game)
         self.input_manager.bind_key_down_global(pygame.K_F1, self.debug.toggle)
         self.input_manager.bind_key_down_global(pygame.K_F3, self.window_manager.toggle_borderless)
-        self.input_manager.bind_key_down_global(pygame.K_F4, self.window_manager.toggle_maximize_restore)
+        self.input_manager.bind_key_down_global(pygame.K_F4, self.window_manager.toggle_maximized)
         self.input_manager.bind_key_down_global(pygame.K_F5, self.restart_game)
         self.input_manager.bind_key_down_global(pygame.K_F6, self.window_manager.toggle_resizable)
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)

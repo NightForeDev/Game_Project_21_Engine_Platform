@@ -282,31 +282,6 @@ class WindowManager:
         # Apply new flag
         self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
 
-    def toggle_maximize_restore(self):
-        """
-        Toggles between maximized and restored window states.
-        """
-        # Early return if action is not applicable
-        if not self.resizable or self.fullscreen:
-            return
-
-        # Windows-specific maximize/restore
-        if sys.platform.startswith("win"):
-            # Get native window handle
-            hwnd = pygame.display.get_wm_info()['window']
-
-            # Check if the window is currently maximized
-            is_maximized = ctypes.windll.user32.IsZoomed(hwnd)
-
-            if is_maximized:
-                # Restore window
-                self.maximized = False
-                ctypes.windll.user32.ShowWindow(hwnd, SW_RESTORE)
-            else:
-                # Maximize the window
-                self.maximized = True
-                ctypes.windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
-
     """
     Operations
         _update_caption
@@ -348,7 +323,7 @@ class WindowManager:
     WIP
         get_size
     """
-    def adjust_scaled_size(self):
+    def adjust_aspect_ratio(self):
         """
         Adjusts the scaled surface size to maintain the render aspect ratio.
         """
@@ -385,17 +360,13 @@ class WindowManager:
         self.detect_maximized()
 
         if self.maximized:
-            screen_info = pygame.display.Info()
-            self.set_scaled_size(screen_info.current_w, screen_info.current_h)
-            self.adjust_scaled_size()
-            self.display_gap = int((screen_info.current_w - self.scaled_size[0]) / 2), self.display_gap[1]
-            self.display_surface.fill((0, 0, 0))
+            self.adjust_maximized()
 
-        if not self.maximized:
+        else:
             self.display_gap = (0, 0)
 
             # Adjust aspect ratio based on current display size
-            self.adjust_scaled_size()
+            self.adjust_aspect_ratio()
 
             # Adjust the display based on new settings
             self.adjust_display_size()
@@ -403,11 +374,70 @@ class WindowManager:
             # Updates the display surface with the adjusted dimensions
             self.display_surface = pygame.display.set_mode(self.display_size, self.flags)
 
+    """
+    Window State: Maximized
+        toggle_maximized
+        detect_maximized
+        adjust_maximized
+    """
+    def toggle_maximized(self):
+        """
+        Toggles between maximized and restored window states.
+        """
+        # Early return if action is not applicable
+        if not self.resizable or self.fullscreen:
+            return
+
+        # Toggle maximize/restore state
+        if sys.platform.startswith("win"):
+            # Get native window handle
+            hwnd = pygame.display.get_wm_info()['window']
+
+            # Check if the window is currently maximized
+            is_maximized = ctypes.windll.user32.IsZoomed(hwnd)
+
+            if is_maximized:
+                # Restore window
+                self.maximized = False
+                ctypes.windll.user32.ShowWindow(hwnd, SW_RESTORE)
+            else:
+                # Maximize the window
+                self.maximized = True
+                ctypes.windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
+
     def detect_maximized(self):
+        """
+        Detect whether the window is currently maximized.
+        """
+        # Get the primary monitor size (desktop resolution)
         desktop_width, desktop_height = pygame.display.get_desktop_sizes()[0]
-        display_width, display_height = pygame.display.get_window_size()
-        if display_width == desktop_width:
-            self.maximized = True
+
+        # Get current window size
+        window_width, window_height = pygame.display.get_window_size()
+
+        # Determine if the window is maximized
+        height_threshold = 0.90 * desktop_height
+        self.maximized = window_width == desktop_width and window_height >= height_threshold
+
+    def adjust_maximized(self):
+        """
+        Adjust the window and scaled content when maximized.
+        """
+        # Get current window size
+        window_width, window_height = pygame.display.get_window_size()
+
+        # Update scaled size to fit the window while maintaining render aspect ratio
+        self.set_scaled_size(window_width, window_height)
+        self.adjust_aspect_ratio()
+
+        # Calculate horizontal and vertical gaps to center the scaled content
+        gap_x = (window_width - self.scaled_size[0]) // 2
+        gap_y = (window_height - self.scaled_size[1]) // 2
+        self.display_gap = gap_x, gap_y
+
+        # Clear display surface
+        self.display_surface.fill((0, 0, 0))
+
 
     def debug(self):
         print(self.render_size)
