@@ -56,11 +56,13 @@ class Core:
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
 
         self.input_manager.bind_key_down_global(pygame.K_F10, self.window_manager.debug)
+        self.input_manager.bind_key_down_global(pygame.K_F2, self.test)
 
     def test(self):
         self.window_manager.set_render_size(200, 500)
+        self.window_manager._update_surface()
         self.window_manager.resize()
-        print(self.window_manager._update_surface())
+        print(self.window_manager.render_size)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""
