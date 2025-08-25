@@ -86,7 +86,7 @@ class WindowManager:
         # Size Attributes
         self.render_size = None
         self.scaled_size = None
-        self.display_size = None
+        self.windowed_size = None
 
         # Window Attributes
         self.flags = None
@@ -119,7 +119,7 @@ class WindowManager:
         self.set_flags(self.config['resizable'], self.config['borderless'], self.config['fullscreen'])
         self.set_render_size(self.config['render_width'], self.config['render_height'])
         self.set_scaled_size(self.config['scaled_width'], self.config['scaled_height'])
-        self.display_size = self.scaled_size
+        self.windowed_size = self.scaled_size
         self._update_surface()
 
     def set_caption(self, tag=None, title=None, version=None, display_tag=None, display_version=None, display_fps=None):
@@ -194,11 +194,7 @@ class WindowManager:
     State Management
         _compute_flags
         set_flags
-        toggle_resizable
-        toggle_fullscreen
-        toggle_maximize_restore
     """
-
     def set_flags(self, resizable=None, borderless=None, fullscreen=None):
         """
         Sets the display surface flags.
@@ -218,19 +214,6 @@ class WindowManager:
 
         # Compute Pygame flags
         self.flags = self._compute_flags()
-
-    def toggle_fullscreen(self):
-        """
-        Toggles fullscreen flag.
-        """
-        # Flip flag state
-        self.fullscreen = not self.fullscreen
-
-        # Update flags
-        self.flags = self._compute_flags()
-
-        # Apply new flag
-        self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
 
     """
     Operations
@@ -273,27 +256,39 @@ class WindowManager:
     WIP
         get_size
     """
+    @staticmethod
+    def _calculate_aspect_ratio_fit(reference_size, target_size):
+        """
+        Calculates the largest size that fits within the target while preserving the aspect ratio of the reference.
+        """
+        # Unpack the reference and target sizes
+        ref_w, ref_h = reference_size
+        tgt_w, tgt_h = target_size
+
+        # Calculate relative change per dimension
+        delta_w = abs(1 - tgt_w / ref_w)
+        delta_h = abs(1 - tgt_h / ref_h)
+
+        # Choose the scaling factor based on the more restrictive dimension
+        if delta_w < delta_h:
+            # Scale height to match width
+            scale_factor = tgt_w / ref_w
+            return tgt_w, int(ref_h * scale_factor)
+        else:
+            # Scale width to match height
+            scale_factor = tgt_h / ref_h
+            return int(ref_w * scale_factor), tgt_h
+
     def adjust_aspect_ratio(self):
         """
         Adjusts the scaled surface size to maintain the render aspect ratio.
         """
-        # Get the surface sizes
-        ds_w, ds_h = self.display_surface.get_size()
-        rs_w, rs_h = self.render_surface.get_size()
+        # Get current display and render sizes
+        display_size = self.display_surface.get_size()
+        render_size = self.render_surface.get_size()
 
-        # Calculate relative change per dimension
-        delta_w = abs(1 - ds_w / rs_w)
-        delta_h = abs(1 - ds_h / rs_h)
-
-        # Adjust scaled surface size to maintain aspect ratio
-        if delta_w < delta_h:
-            # Adjust height based on width change
-            self.scale_factor = ds_w / rs_w
-            self.scaled_size = ds_w, int(rs_h * self.scale_factor)
-        else:
-            # Adjust width based on height change
-            self.scale_factor = ds_h / rs_h
-            self.scaled_size = int(rs_w * self.scale_factor), ds_h
+        # Compute scaled dimensions that maintain aspect ratio
+        self.scaled_size = self._calculate_aspect_ratio_fit(render_size, display_size)
 
     def adjust_display_size(self):
         """
@@ -302,7 +297,7 @@ class WindowManager:
         # Calculate display dimensions
         display_w = self.scaled_size[0] + self.display_gap[0] * 2
         display_h = self.scaled_size[1] + self.display_gap[1] * 2
-        self.display_size = display_w, display_h
+        self.windowed_size = display_w, display_h
 
     def _detect_maximized(self):
         """
@@ -344,7 +339,6 @@ class WindowManager:
 
         if self.maximized or self.borderless:
             self.adjust_maximized()
-
         else:
             self.display_gap = (0, 0)
 
@@ -355,16 +349,17 @@ class WindowManager:
             self.adjust_display_size()
 
             # Updates the display surface with the adjusted dimensions
-            self.display_surface = pygame.display.set_mode(self.display_size, self.flags)
+            self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
 
     """
     Window State Management
         _compute_flags
         _restore_window
         _maximize_window
-        toggle_resizable
-        toggle_borderless
         toggle_maximized
+        toggle_borderless
+        toggle_resizable
+        toggle_fullscreen
     """
     def _compute_flags(self):
         """
@@ -429,7 +424,7 @@ class WindowManager:
         self.borderless = not self.borderless
         self.fullscreen = False
         self.flags = self._compute_flags()
-        self.display_surface = pygame.display.set_mode(self.display_size, self.flags)
+        self.display_surface = pygame.display.set_mode(self.windowed_size, self.flags)
 
         # Maximize if borderless to apply borderless fullscreen
         if self.borderless:
@@ -458,10 +453,29 @@ class WindowManager:
                 # Maximize the window
                 self._maximize_window()
 
+    def toggle_fullscreen(self):
+        """
+        Toggles fullscreen window mode.
+        """
+        # Update Pygame display flags
+        self.fullscreen = not self.fullscreen
+        self.borderless = False
+        self.flags = self._compute_flags()
+
+        if self.fullscreen:
+            render_size = self.render_surface.get_size()
+            display_size = pygame.display.get_desktop_sizes()[0]
+            target_size = self._calculate_aspect_ratio_fit(render_size, display_size)
+            self.display_gap = (0, 0)
+            self.display_surface = pygame.display.set_mode(target_size, self.flags)
+            self.adjust_aspect_ratio()
+        else:
+            self.display_surface = pygame.display.set_mode(self.windowed_size, self.flags)
+
     def debug(self):
         print(self.render_size)
         print(self.scaled_size)
-        print(self.display_size)
+        print(self.windowed_size)
         print(self.display_surface.get_size())
         print(pygame.display.get_surface().get_size())
         print(pygame.display.get_window_size())
