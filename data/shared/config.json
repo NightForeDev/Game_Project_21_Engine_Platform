@@ -35,7 +35,8 @@
     "scaled_width": 640,
     "scaled_height": 480,
 
-    "fullscreen": false,
-    "resizable": true
+    "resizable": true,
+    "borderless": false,
+    "fullscreen": false
   }
 }

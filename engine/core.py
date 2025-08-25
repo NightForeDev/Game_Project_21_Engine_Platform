@@ -49,11 +49,13 @@ class Core:
         """Bind system keys."""
         self.input_manager.bind_key_down_global(pygame.K_ESCAPE, self.quit_game)
         self.input_manager.bind_key_down_global(pygame.K_F1, self.debug.toggle)
-        self.input_manager.bind_key_down_global(pygame.K_F3, self.test)
+        self.input_manager.bind_key_down_global(pygame.K_F3, self.window_manager.toggle_borderless)
         self.input_manager.bind_key_down_global(pygame.K_F4, self.window_manager.toggle_maximize_restore)
         self.input_manager.bind_key_down_global(pygame.K_F5, self.restart_game)
         self.input_manager.bind_key_down_global(pygame.K_F6, self.window_manager.toggle_resizable)
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
+
+        self.input_manager.bind_key_down_global(pygame.K_F10, self.window_manager.debug)
 
     def test(self):
         self.window_manager.set_render_size(200, 500)
@@ -107,8 +109,9 @@ class Core:
 
     def render(self):
         """Render current scene."""
-        self.window_manager.render(self.current_scene.render)
-        self.window_manager.render(self.debug.draw)
+        self.current_scene.render(self.window_manager.render_surface)
+        self.debug.draw(self.window_manager.render_surface)
+        self.window_manager.render()
 
     def quit_game(self):
         """Exit the game."""

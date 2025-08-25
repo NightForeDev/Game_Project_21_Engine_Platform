@@ -80,6 +80,7 @@ class WindowManager:
 
         # Flags Attributes
         self.resizable = None
+        self.borderless = None
         self.fullscreen = None
 
         # Size Attributes
@@ -115,9 +116,10 @@ class WindowManager:
         Loads configuration from a dictionary
         """
         self.set_caption(self.config['tag'], self.config['title'], self.config['version'], self.config['display_tag'], self.config['display_version'], self.config['display_fps'])
-        self.set_flags(self.config['resizable'], self.config['fullscreen'])
+        self.set_flags(self.config['resizable'], self.config['borderless'], self.config['fullscreen'])
         self.set_render_size(self.config['render_width'], self.config['render_height'])
         self.set_scaled_size(self.config['scaled_width'], self.config['scaled_height'])
+        self.display_size = self.scaled_size
         self._update_surface()
 
     def set_caption(self, tag=None, title=None, version=None, display_tag=None, display_version=None, display_fps=None):
@@ -211,23 +213,30 @@ class WindowManager:
             flags |= pygame.RESIZABLE
 
         # Fullscreen flag
+        if self.borderless:
+            flags |= pygame.NOFRAME
+
+        # Fullscreen flag
         if self.fullscreen:
             flags |= pygame.FULLSCREEN
 
         # Return Pygame flags
         return flags
 
-    def set_flags(self, resizable=None, fullscreen=None):
+    def set_flags(self, resizable=None, borderless=None, fullscreen=None):
         """
         Sets the display surface flags.
 
         Args:
             resizable (bool): Enable or disable window resizing
+            borderless (bool): Enable or disable borderless mode
             fullscreen (bool): Enable or disable fullscreen mode
         """
         # Update flag state
         if resizable is not None:
             self.resizable = resizable
+        if borderless is not None:
+            self.borderless = borderless
         if fullscreen is not None:
             self.fullscreen = fullscreen
 
@@ -253,6 +262,19 @@ class WindowManager:
         """
         # Flip flag state
         self.fullscreen = not self.fullscreen
+
+        # Update flags
+        self.flags = self._compute_flags()
+
+        # Apply new flag
+        self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
+
+    def toggle_borderless(self):
+        """
+        Toggles borderless flag.
+        """
+        # Flip flag state
+        self.borderless = not self.borderless
 
         # Update flags
         self.flags = self._compute_flags()
@@ -360,7 +382,18 @@ class WindowManager:
     def resize(self):
         """
         """
+        self.detect_maximized()
+
+        if self.maximized:
+            screen_info = pygame.display.Info()
+            self.set_scaled_size(screen_info.current_w, screen_info.current_h)
+            self.adjust_scaled_size()
+            self.display_gap = int((screen_info.current_w - self.scaled_size[0]) / 2), self.display_gap[1]
+            self.display_surface.fill((0, 0, 0))
+
         if not self.maximized:
+            self.display_gap = (0, 0)
+
             # Adjust aspect ratio based on current display size
             self.adjust_scaled_size()
 
@@ -369,6 +402,23 @@ class WindowManager:
 
             # Updates the display surface with the adjusted dimensions
             self.display_surface = pygame.display.set_mode(self.display_size, self.flags)
+
+    def detect_maximized(self):
+        desktop_width, desktop_height = pygame.display.get_desktop_sizes()[0]
+        display_width, display_height = pygame.display.get_window_size()
+        if display_width == desktop_width:
+            self.maximized = True
+
+    def debug(self):
+        print(self.render_size)
+        print(self.scaled_size)
+        print(self.display_size)
+        print(self.display_surface.get_size())
+        print(pygame.display.get_surface().get_size())
+        print(pygame.display.get_window_size())
+        print(pygame.display.Info().current_w, pygame.display.Info().current_h)
+        print(pygame.display.get_desktop_sizes())
+        print()
 
     def get_size(self):
         return self.render_size[0], self.render_size[1]
@@ -385,13 +435,10 @@ class WindowManager:
         if self.display_fps and self.clock:
             self._update_caption()
 
-    def render(self, render_func):
+    def render(self):
         """
         Renders surface
         """
-        render_func(self.render_surface)
-        render_surface_scaled = pygame.transform.scale(self.render_surface, self.scaled_size)
-
-        self.display_surface.blit(render_surface_scaled, (0, 0))
-
+        scaled_surface = pygame.transform.scale(self.render_surface, self.scaled_size)
+        self.display_surface.blit(scaled_surface, self.display_gap)
         pygame.display.flip()
