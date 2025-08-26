@@ -10,59 +10,69 @@ SW_RESTORE = 9
 
 class WindowManager:
     """
-    WindowManager handles Pygame window creation, configuration, and state
+    WindowManager handles Pygame window creation, configuration, and display state.
 
     Attributes:
         Class Attributes:
-            class_name (str): Name of the class
-            config (dict): Loaded configuration dictionary
-            clock (pygame.time.Clock): Pygame clock instance
+            class_name (str): Name of the class.
+            config (dict): Loaded configuration dictionary for this class.
+            clock (pygame.time.Clock): Optional clock for FPS display.
 
         Caption Attributes:
-            tag (str): Pre-title label
-            title (str): Window title
-            version (str): Application version
-            display_tag (bool): Whether to show the tag
-            display_version (bool): Whether to show the version
-            display_fps (bool): Whether to show the FPS
+            tag (str): Optional pre-title label.
+            title (str): Window title.
+            version (str): Application version string.
+            display_tag (bool): Whether to display the tag.
+            display_version (bool): Whether to display the version.
+            display_fps (bool): Whether to display FPS in caption.
 
-        Flags Attributes:
-            resizable (bool): Whether window is resizable
-            fullscreen (bool): Whether fullscreen mode is active
+        Flag Attributes:
+            flags (int): Current Pygame display flags.
+            maximized (bool): Whether the window is maximized.
+            resizable (bool): Whether the window is resizable.
+            borderless (bool): Whether the window is borderless.
+            fullscreen (bool): Whether fullscreen mode is active.
 
         Size Attributes:
+            render_size (tuple[int, int]): Logical size for rendering content.
+            scaled_size (tuple[int, int]): Scaled size of the content on screen.
+            windowed_size (tuple[int, int]): Size of the actual window in windowed mode.
 
-        Window Attributes:
-            flags (int): Bitmask of Pygame display flags
-            maximized (bool): Whether window is maximized
-            render_surface (pygame.Surface): Rendering surface used for drawing.
-            display_surface (pygame.Surface): Display surface shown on the window.
-
-        Debug Attributes:
-            display_gap (tuple): Gaps from scaling
+        Surface Attributes:
+            render_surface (pygame.Surface): Surface where all drawing occurs.
+            display_surface (pygame.Surface): Surface displayed on the window.
+            display_gap (tuple[int, int]): Gap for centering content when scaled.
 
     Methods:
         Configuration:
-            _load_config: Loads configuration from a dictionary
-            set_caption: Sets the window caption
-            set_render_size: Sets the render surface size
-            set_scaled_size: Sets the scaled surface size
+            _load_config(): Load settings from configuration and initialize attributes.
+            _apply_surface_sizes(): Apply current render and scaled sizes.
+            set_caption(tag, title, version, display_tag, display_version, display_fps): Sets the window caption.
+            set_flags(resizable, borderless, fullscreen): Sets the display surface flags.
+            set_render_size(width, height): Sets the render surface size.
+            set_scaled_size(width, height): Sets the scaled surface size.
+
+        Resizing & Scaling:
+            _detect_maximized(): Detects if the window is maximized.
+            _calculate_aspect_ratio_fit(reference_size, target_size): Fits target size while preserving aspect ratio.
+            _adjust_scaled_size(): Adjusts scaled surface size.
+            _adjust_windowed_size(): Adjusts windowed surface size.
+            _adjust_maximized(): Adjusts scaled surface and center content for maximized windows.
+            resize(): Handles window resizing event and update surfaces.
 
         State Management:
-            _compute_flags: Computes the Pygame display flags based on current state
-            set_flags: Sets the display surface flags
-            toggle_resizable: Toggles resizable flag
-            toggle_fullscreen: Toggles fullscreen flag
-            toggle_maximize_restore: Toggles between maximized and restored window states
+            _compute_flags(): Computes pygame display flags from current state.
+            _restore_window(): Restores the window from maximized state.
+            _maximize_window(): Maximizes the window.
+            toggle_maximized(): Toggles between maximized and restored states.
+            toggle_borderless(): Toggles borderless window mode.
+            toggle_resizable(): Toggles resizable window mode.
+            toggle_fullscreen(): Toggles fullscreen window mode.
 
         Operations:
-            _update_caption: Updates the window caption
-            _update_window: Updates the window surface
-            resize: Resizes the window to the specified dimensions
-
-        Main Loop:
-            update: Updates state
-            render: Renders surface
+            _update_caption(): Updates the window caption.
+            update(): Updates the class.
+            render(): Renders the class.
     """
     def __init__(self, app_config, clock=None):
         # Class Attributes
@@ -78,7 +88,9 @@ class WindowManager:
         self.display_version = None
         self.display_fps = None
 
-        # Flags Attributes
+        # Flag Attributes
+        self.flags = None
+        self.maximized = None
         self.resizable = None
         self.borderless = None
         self.fullscreen = None
@@ -88,15 +100,10 @@ class WindowManager:
         self.scaled_size = None
         self.windowed_size = None
 
-        # Window Attributes
-        self.flags = None
-        self.maximized = None
+        # Surface Attributes
         self.render_surface = None
         self.display_surface = None
-
-        # Debug Attributes
         self.display_gap = (0, 0)
-        self.scale_factor = None
 
         # Set the environment variable to center the game window.
         os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -107,6 +114,7 @@ class WindowManager:
     """
     Configuration
         _load_config
+        _apply_surface_sizes
         set_caption
         set_flags
         set_render_size
@@ -114,14 +122,26 @@ class WindowManager:
     """
     def _load_config(self):
         """
-        Loads configuration from a dictionary
+        Load settings from configuration and initialize attributes.
         """
+        # Apply configuration values
         self.set_caption(self.config['tag'], self.config['title'], self.config['version'], self.config['display_tag'], self.config['display_version'], self.config['display_fps'])
         self.set_flags(self.config['resizable'], self.config['borderless'], self.config['fullscreen'])
         self.set_render_size(self.config['render_width'], self.config['render_height'])
         self.set_scaled_size(self.config['scaled_width'], self.config['scaled_height'])
+
+        # Initialize attributes
         self.windowed_size = self.scaled_size
-        self._update_surface()
+        self._apply_surface_sizes()
+
+    def _apply_surface_sizes(self):
+        """
+        Apply current render and scaled sizes
+        """
+        if self.render_size and self.scaled_size:
+            self.render_surface = pygame.Surface(self.render_size)
+            self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
+            self.resize()
 
     def set_caption(self, tag=None, title=None, version=None, display_tag=None, display_version=None, display_fps=None):
         """
@@ -192,6 +212,9 @@ class WindowManager:
         # Update surface size
         self.render_size = width, height
 
+        # Apply new surface sizes
+        self._apply_surface_sizes()
+
     def set_scaled_size(self, width=None, height=None):
         """
         Sets the scaled surface size.
@@ -211,44 +234,11 @@ class WindowManager:
         # Update surface size
         self.scaled_size = width, height
 
-    """
-    Operations
-        _update_caption
-        _update_surface
-    """
-    def _update_caption(self):
-        """
-        Updates the window caption.
-        """
-        parts = []
-
-        # Optional tag display
-        if self.display_tag and self.tag:
-            parts.append(f"{self.tag}")
-
-        # Window title
-        parts.append(self.title)
-
-        # Optional version display
-        if self.display_version and self.version:
-            parts.append(f"{self.version}")
-
-        # Optional FPS display
-        if self.display_fps and self.clock:
-            parts.append(f"({int(self.clock.get_fps())} FPS)")
-
-        # Update new caption
-        pygame.display.set_caption(" ".join(parts))
-
-    def _update_surface(self):
-        """
-        Updates the display surface.
-        """
-        self.render_surface = pygame.Surface((self.render_size[0], self.render_size[1]))
-        self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
+        # Apply new surface sizes
+        self._apply_surface_sizes()
 
     """
-    Window Resizing & Scaling
+    Resizing & Scaling
         _detect_maximized
         _calculate_aspect_ratio_fit
         _adjust_scaled_size
@@ -258,7 +248,7 @@ class WindowManager:
     """
     def _detect_maximized(self):
         """
-        Detect whether the window is currently maximized.
+        Detects if the window is maximized.
         """
         # Get the primary monitor size (desktop resolution)
         desktop_width, desktop_height = pygame.display.get_desktop_sizes()[0]
@@ -275,7 +265,7 @@ class WindowManager:
     @staticmethod
     def _calculate_aspect_ratio_fit(reference_size, target_size):
         """
-        Calculates the largest size that fits within the target while preserving the aspect ratio of the reference.
+        Fits target size while preserving aspect ratio.
         """
         # Unpack the reference and target sizes
         ref_w, ref_h = reference_size
@@ -297,7 +287,7 @@ class WindowManager:
 
     def _adjust_scaled_size(self):
         """
-        Adjusts the scaled surface size to the current display while preserving aspect ratio.
+        Adjusts scaled surface size.
         """
         # Get render and display surface sizes
         render_size = self.render_surface.get_size()
@@ -308,7 +298,7 @@ class WindowManager:
 
     def _adjust_windowed_size(self):
         """
-        Adjusts the windowed surface size based on the scaled size and display gaps.
+        Adjusts the windowed surface size.
         """
         # Compute windowed dimensions including display gaps
         window_width = self.scaled_size[0] + self.display_gap[0] * 2
@@ -317,7 +307,7 @@ class WindowManager:
 
     def _adjust_maximized(self):
         """
-        Adjust the scaled surface for a maximized window.
+        Adjusts scaled surface and center content for maximized windows.
         """
         # Get current window size
         window_width, window_height = pygame.display.get_window_size()
@@ -335,7 +325,7 @@ class WindowManager:
 
     def resize(self):
         """
-        Handle window resizing (pygame.VIDEORESIZE event).
+        Handles window resizing event and update surfaces.
         """
         # Detect if the window is currently maximized
         self._detect_maximized()
@@ -343,7 +333,8 @@ class WindowManager:
         if self.maximized or self.borderless:
             # Adjust scaled surface and center content
             self._adjust_maximized()
-        else:
+
+        elif not self.fullscreen:
             # Reset centering gaps for windowed mode
             self.display_gap = (0, 0)
 
@@ -357,7 +348,7 @@ class WindowManager:
             self.display_surface = pygame.display.set_mode(self.windowed_size, self.flags)
 
     """
-    Window State Management
+    State Management
         _compute_flags
         _restore_window
         _maximize_window
@@ -368,7 +359,7 @@ class WindowManager:
     """
     def _compute_flags(self):
         """
-        Computes the Pygame display flags based on current state.
+        Computes pygame display flags from current state.
 
         Returns:
             flags (int): Bitmask of Pygame display flags
@@ -404,7 +395,7 @@ class WindowManager:
 
     def toggle_maximized(self):
         """
-        Toggle between maximized and restored states.
+        Toggles between maximized and restored states.
         """
         # Early return if action is not applicable
         if not self.resizable or self.borderless or self.fullscreen:
@@ -437,6 +428,7 @@ class WindowManager:
         hwnd = pygame.display.get_wm_info()['window']
         is_maximized = ctypes.windll.user32.IsZoomed(hwnd)
         if is_maximized:
+            print("ok")
             self._restore_window()
 
         # Update Pygame display flags
@@ -489,6 +481,9 @@ class WindowManager:
             # Restore windowed display mode
             self.display_surface = pygame.display.set_mode(self.windowed_size, self.flags)
 
+    """
+    Debug
+    """
     def debug(self):
         print(self.render_size)
         print(self.scaled_size)
@@ -500,24 +495,46 @@ class WindowManager:
         print(pygame.display.get_desktop_sizes())
         print()
 
-    def get_size(self):
-        return self.render_size[0], self.render_size[1]
-
     """
-    Main Loop
+    Operations
+        _update_caption
         update
         render
     """
+    def _update_caption(self):
+        """
+        Updates the window caption.
+        """
+        parts = []
+
+        # Optional tag display
+        if self.display_tag and self.tag:
+            parts.append(f"{self.tag}")
+
+        # Window title
+        parts.append(self.title)
+
+        # Optional version display
+        if self.display_version and self.version:
+            parts.append(f"{self.version}")
+
+        # Optional FPS display
+        if self.display_fps and self.clock:
+            parts.append(f"({int(self.clock.get_fps())} FPS)")
+
+        # Update new caption
+        pygame.display.set_caption(" ".join(parts))
+
     def update(self):
         """
-        Updates state.
+        Updates the class.
         """
         if self.display_fps and self.clock:
             self._update_caption()
 
     def render(self):
         """
-        Renders surface
+        Renders the class.
         """
         scaled_surface = pygame.transform.scale(self.render_surface, self.scaled_size)
         self.display_surface.blit(scaled_surface, self.display_gap)

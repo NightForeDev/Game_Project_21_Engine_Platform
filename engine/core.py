@@ -55,14 +55,21 @@ class Core:
         self.input_manager.bind_key_down_global(pygame.K_F6, self.window_manager.toggle_resizable)
         self.input_manager.bind_key_down_global(pygame.K_F11, self.window_manager.toggle_fullscreen)
 
-        self.input_manager.bind_key_down_global(pygame.K_F10, self.window_manager.debug)
         self.input_manager.bind_key_down_global(pygame.K_F2, self.test)
+        self.input_manager.bind_key_down_global(pygame.K_F10, self.test_2)
+        self.input_manager.bind_key_down_global(pygame.K_F12, self.window_manager.debug)
 
     def test(self):
-        self.window_manager.set_render_size(200, 500)
-        self.window_manager._update_surface()
-        self.window_manager.resize()
+        self.window_manager.set_render_size(200, 200)
         print(self.window_manager.render_size)
+        print(self.window_manager.scaled_size)
+        print(self.window_manager.windowed_size)
+
+    def test_2(self):
+        self.window_manager.set_scaled_size(200, 200)
+        print(self.window_manager.render_size)
+        print(self.window_manager.scaled_size)
+        print(self.window_manager.windowed_size)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""

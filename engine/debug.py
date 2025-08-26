@@ -32,7 +32,9 @@ class Debug:
             f"FPS: {self.fps:.1f}",
             f"Delta Time: {int(self.core.dt*1000)} ms",
             f"Scene: {type(self.core.current_scene).__name__}",
-            f"Window Size: {self.core.window_manager.get_size()}",
+            f"Render Size: {self.core.window_manager.render_size}",
+            f"Scaled Size: {self.core.window_manager.scaled_size}",
+            f"Windowed Size: {self.core.window_manager.windowed_size}",
         ]
         for i, line in enumerate(lines):
             draw_text(surface, line, (10, 10 + i * 20), font=self.font)

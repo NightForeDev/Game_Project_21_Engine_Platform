@@ -9,7 +9,7 @@ class MenuScene(Scene):
     def __init__(self, game):
         super().__init__(game)
 
-        self.screen_w, self.screen_h = self.game.window_manager.get_size()
+        self.screen_w, self.screen_h = pygame.display.get_surface().get_size()
         self.font_size = max(16, int(self.screen_h * self.BASE_FONT_SIZE_RATIO))
         self.padding = int(self.screen_w * self.PADDING_RATIO)
         self.line_spacing = self.font_size + 8
