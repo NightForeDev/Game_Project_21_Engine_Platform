@@ -47,15 +47,20 @@ class Core:
 
     def register_shortcuts(self):
         """Bind system keys."""
-        self.input_manager.bind_key_down(pygame.K_ESCAPE, self.quit_game, global_=True)
-        self.input_manager.bind_key_down(pygame.K_F1, self.debug.toggle, global_=True)
-        self.input_manager.bind_key_down(pygame.K_F3, self.window_manager.toggle_borderless, global_=True)
-        self.input_manager.bind_key_down(pygame.K_F4, self.window_manager.toggle_maximized, global_=True)
-        self.input_manager.bind_key_down(pygame.K_F5, self.restart_game, global_=True)
-        self.input_manager.bind_key_down(pygame.K_F6, self.window_manager.toggle_resizable, global_=True)
-        self.input_manager.bind_key_down(pygame.K_F11, self.window_manager.toggle_fullscreen, global_=True)
+        input_config = {
+            "bind": [
+                {"key": pygame.K_ESCAPE, "callback": self.quit_game, "global": True},
+                {"key": pygame.K_F1, "callback": self.debug.toggle, "global": True},
+                {"key": pygame.K_F3, "callback": self.window_manager.toggle_borderless, "global": True},
+                {"key": pygame.K_F4, "callback": self.window_manager.toggle_maximized, "global": True},
+                {"key": pygame.K_F5, "callback": self.restart_game, "global": True},
+                {"key": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
+                {"key": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
+                {"key": pygame.K_F12, "callback": self.input_manager.debug, "global": True},
+            ]
+        }
 
-        self.input_manager.bind_key_down(pygame.K_F12, self.input_manager.debug, global_=True)
+        self.input_manager.load_config(input_config)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""

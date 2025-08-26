@@ -28,6 +28,9 @@ class InputManager:
             action_to_mouse (dict[str, int]): Maps action names to mouse buttons.
 
     Methods:
+        Configuration:
+            load_config(config): Load default key and mouse mappings from configuration.
+
         Callback Management:
             clear_local_callbacks(): Remove all local callbacks.
             clear_all_callbacks(): Remove all callbacks.
@@ -69,6 +72,36 @@ class InputManager:
         # Action Mappings
         self.action_to_key = {}
         self.action_to_mouse = {}
+
+    """
+    Configuration
+        load_config
+    """
+    def load_config(self, config):
+        """
+        Load settings from configuration and initialize attributes.
+        """
+        # Map actions
+        for action, mapping in config.get("map", {}).items():
+            key = mapping.get("key")
+            mouse = mapping.get("mouse")
+
+            if key is not None:
+                self.map_action_to_key(key, action)
+            if mouse is not None:
+                self.map_action_to_mouse(mouse, action)
+
+        # Bind callbacks
+        for bind in config.get("bind", []):
+            key = bind.get("key")
+            button = bind.get("button")
+            callback = bind.get("callback")
+            global_ = bind.get("global", False)
+
+            if key is not None and callback is not None:
+                self.bind_key_down(key, callback, global_=global_)
+            if button is not None and callback is not None:
+                self.bind_mouse_down(button, callback, global_=global_)
 
     """
     Callback Management
@@ -144,11 +177,11 @@ class InputManager:
         """
         self.action_to_key[action] = key
 
-    def map_action_to_mouse(self, button, action):
+    def map_action_to_mouse(self, mouse, action):
         """
         Bind an action to a mouse button.
         """
-        self.action_to_mouse[action] = button
+        self.action_to_mouse[action] = mouse
 
     """
     Event handling
