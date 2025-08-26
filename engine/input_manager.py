@@ -3,150 +3,231 @@
 import pygame
 
 class InputManager:
+    """
+    Manages input including state tracking, action mapping, and local/global callback handling.
+
+    Attributes:
+        State Attributes:
+            key_state (dict[int, bool]): Current pressed state of keyboard keys.
+            mouse_state (dict[int, bool]): Current pressed state of mouse buttons.
+
+        Local Callbacks:
+            local_key_down_callbacks (dict[int, Callable]): Functions bound to key press events locally.
+            local_key_up_callbacks (dict[int, Callable]): Functions bound to key release events locally.
+            local_mouse_down_callbacks (dict[int, Callable]): Functions bound to mouse press events locally.
+            local_mouse_up_callbacks (dict[int, Callable]): Functions bound to mouse release events locally.
+
+        Global Callbacks:
+            global_key_down_callbacks (dict[int, Callable]): Functions bound to key press events globally.
+            global_key_up_callbacks (dict[int, Callable]): Functions bound to key release events globally.
+            global_mouse_down_callbacks (dict[int, Callable]): Functions bound to mouse press events globally.
+            global_mouse_up_callbacks (dict[int, Callable]): Functions bound to mouse release events globally.
+
+        Action Mappings:
+            action_to_key (dict[str, int]): Maps action names to keyboard keys.
+            action_to_mouse (dict[str, int]): Maps action names to mouse buttons.
+
+    Methods:
+        Callback Management:
+            clear_local_callbacks(): Remove all local callbacks.
+            clear_all_callbacks(): Remove all callbacks.
+
+        Binding Methods:
+            bind_key_down(key, callback, global_=False): Bind a callback to a key press.
+            bind_key_up(key, callback, global_=False): Bind a callback to a key release.
+            bind_mouse_down(button, callback, global_=False): Bind a callback to a mouse button press.
+            bind_mouse_up(button, callback, global_=False): Bind a callback to a mouse button release.
+
+        Mapping Methods:
+            map_action_to_key(key, action): Map an action to a keyboard key.
+            map_action_to_mouse(button, action): Map an action to a mouse button.
+
+        Event Handling:
+            handle_event(event): Handle pygame events to update states and trigger callbacks.
+            is_action_active(action): Check if an action is currently active (held).
+
+        Debug:
+            debug(): Print the current internal state for debugging purposes.
+    """
     def __init__(self):
-        # Global key/button callbacks
-        self.global_key_down_callbacks = {}     # key -> function
-        self.global_key_up_callbacks = {}       # key -> function
-        self.global_mouse_down_callbacks = {}   # button -> function
-        self.global_mouse_up_callbacks = {}     # button -> function
+        # State Attributes
+        self.key_state = {}
+        self.mouse_state = {}
 
-        # Local key/button callbacks
-        self.key_down_callbacks = {}            # key -> function
-        self.key_up_callbacks = {}              # key -> function
-        self.mouse_down_callbacks = {}          # button -> function
-        self.mouse_up_callbacks = {}            # button -> function
+        # Local Callbacks
+        self.local_key_down_callbacks = {}
+        self.local_key_up_callbacks = {}
+        self.local_mouse_down_callbacks = {}
+        self.local_mouse_up_callbacks = {}
 
-        # Action bindings
-        self.action_to_key = {}                 # action -> key
-        self.action_to_mouse = {}               # action -> button
+        # Global Callbacks
+        self.global_key_down_callbacks = {}
+        self.global_key_up_callbacks = {}
+        self.global_mouse_down_callbacks = {}
+        self.global_mouse_up_callbacks = {}
 
-        # Key/button states (held)
-        self.key_state = {}                     # key -> held
-        self.mouse_state = {}                   # button -> held
+        # Action Mappings
+        self.action_to_key = {}
+        self.action_to_mouse = {}
 
-    def clear_callbacks(self):
-        """Remove local callbacks."""
-        self.key_down_callbacks.clear()
-        self.key_up_callbacks.clear()
-        self.mouse_down_callbacks.clear()
-        self.mouse_up_callbacks.clear()
+    """
+    Callback Management
+        clear_local_callbacks
+        clear_all_callbacks
+    """
+    def clear_local_callbacks(self):
+        """Remove all local callbacks."""
+        self.local_key_down_callbacks.clear()
+        self.local_key_up_callbacks.clear()
+        self.local_mouse_down_callbacks.clear()
+        self.local_mouse_up_callbacks.clear()
 
     def clear_all_callbacks(self):
         """Remove all callbacks."""
-        self.clear_callbacks()
+        self.clear_local_callbacks()
         self.global_key_down_callbacks.clear()
         self.global_key_up_callbacks.clear()
+        self.global_mouse_down_callbacks.clear()
+        self.global_mouse_up_callbacks.clear()
 
     """
-    Global callbacks
+    Binding Methods
+        bind_key_down
+        bind_key_up
+        bind_mouse_down
+        bind_mouse_up
     """
-    def bind_key_down_global(self, key, callback):
-        """Bind global callback to key press."""
-        self.global_key_down_callbacks[key] = callback
+    def bind_key_down(self, key, callback, global_=False):
+        """
+        Bind a callback to a key press.
+        """
+        if global_:
+            self.global_key_down_callbacks[key] = callback
+        else:
+            self.local_key_down_callbacks[key] = callback
 
-    def bind_key_up_global(self, key, callback):
-        """Bind global callback to key release."""
-        self.global_key_up_callbacks[key] = callback
+    def bind_key_up(self, key, callback, global_=False):
+        """
+        Bind a callback to a key release.
+        """
+        if global_:
+            self.global_key_up_callbacks[key] = callback
+        else:
+            self.local_key_up_callbacks[key] = callback
 
-    def bind_mouse_down_global(self, button, callback):
-        """Bind global callback to mouse press."""
-        self.global_mouse_down_callbacks[button] = callback
+    def bind_mouse_down(self, button, callback, global_=False):
+        """
+        Bind a callback to a mouse button press.
+        """
+        if global_:
+            self.global_mouse_down_callbacks[button] = callback
+        else:
+            self.local_mouse_down_callbacks[button] = callback
 
-    def bind_mouse_up_global(self, button, callback):
-        """Bind global callback to mouse release."""
-        self.global_mouse_up_callbacks[button] = callback
+    def bind_mouse_up(self, button, callback, global_=False):
+        """
+        Bind a callback to a mouse button release.
+        """
+        if global_:
+            self.global_mouse_up_callbacks[button] = callback
+        else:
+            self.local_mouse_up_callbacks[button] = callback
 
     """
-    Local callbacks
+    Mapping Methods
+        map_action_to_key
+        map_action_to_mouse
     """
-    def bind_key_down(self, key, callback):
-        """Bind local callback to key press."""
-        self.key_down_callbacks[key] = callback
-
-    def bind_key_up(self, key, callback):
-        """Bind local callback to key release."""
-        self.key_up_callbacks[key] = callback
-
-    def bind_mouse_down(self, button, callback):
-        """Bind local callback to mouse press."""
-        self.mouse_down_callbacks[button] = callback
-
-    def bind_mouse_up(self, button, callback):
-        """Bind local callback to mouse release."""
-        self.mouse_up_callbacks[button] = callback
-
-    """
-    Key/Button states
-    """
-    def map_action_to_key(self, action, key):
-        """Map action to a keyboard key."""
+    def map_action_to_key(self, key, action):
+        """
+        Bind an action to a keyboard key.
+        """
         self.action_to_key[action] = key
 
-    def map_action_to_mouse(self, action, button):
-        """Map action to a mouse button."""
+    def map_action_to_mouse(self, button, action):
+        """
+        Bind an action to a mouse button.
+        """
         self.action_to_mouse[action] = button
-
-    def is_action_active(self, action):
-        """Check if the key or mouse button bound to an action is currently held down."""
-        key = self.action_to_key.get(action)
-        if key is not None and self.key_state.get(key, False):
-            return True
-
-        button = self.action_to_mouse.get(action)
-        if button is not None and self.mouse_state.get(button, False):
-            return True
-
-        return False
 
     """
     Event handling
+        handle_event
+        is_action_active
     """
     def handle_event(self, event):
-        """Handle pygame input events."""
+        """
+        Handle pygame events to update states and trigger callbacks.
+        """
+        # Key pressed
         if event.type == pygame.KEYDOWN:
-            # Key state
             self.key_state[event.key] = True
-
-            # Global callback
-            if event.key in self.global_key_down_callbacks:
+            if event.key in self.local_key_down_callbacks:
+                self.local_key_down_callbacks[event.key]()
+            elif event.key in self.global_key_down_callbacks:
                 self.global_key_down_callbacks[event.key]()
 
-            # Local callback
-            if event.key in self.key_down_callbacks:
-                self.key_down_callbacks[event.key]()
-
+        # Key released
         elif event.type == pygame.KEYUP:
-            # Key state
             self.key_state[event.key] = False
-
-            # Global callback
-            if event.key in self.global_key_up_callbacks:
+            if event.key in self.local_key_up_callbacks:
+                self.local_key_up_callbacks[event.key]()
+            elif event.key in self.global_key_up_callbacks:
                 self.global_key_up_callbacks[event.key]()
 
-            # Local callback
-            if event.key in self.key_up_callbacks:
-                self.key_up_callbacks[event.key]()
-
+        # Mouse button pressed
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # Button state
             self.mouse_state[event.button] = True
-
-            # Global callback
-            if event.button in self.global_mouse_down_callbacks:
+            if event.button in self.local_mouse_down_callbacks:
+                self.local_mouse_down_callbacks[event.button]()
+            elif event.button in self.global_mouse_down_callbacks:
                 self.global_mouse_down_callbacks[event.button]()
 
-            # Local callback
-            if event.button in self.mouse_down_callbacks:
-                self.mouse_down_callbacks[event.button]()
-
+        # Mouse button released
         elif event.type == pygame.MOUSEBUTTONUP:
-            # Button state
             self.mouse_state[event.button] = False
-
-            # Global callback
-            if event.button in self.global_mouse_up_callbacks:
+            if event.button in self.local_mouse_up_callbacks:
+                self.local_mouse_up_callbacks[event.button]()
+            elif event.button in self.global_mouse_up_callbacks:
                 self.global_mouse_up_callbacks[event.button]()
 
-            # Local callback
-            if event.button in self.mouse_up_callbacks:
-                self.mouse_up_callbacks[event.button]()
+    def is_action_active(self, action):
+        """
+        Check if an action is currently active (held).
+
+        Returns True if the key or mouse button mapped to the action is currently held.
+        """
+        # Check mapped key
+        key = self.action_to_key.get(action)
+        if key and self.key_state.get(key, False):
+            return True
+
+        # Check mapped mouse button
+        button = self.action_to_mouse.get(action)
+        if button and self.mouse_state.get(button, False):
+            return True
+
+        # Not active
+        return False
+
+    """
+    Debug
+        debug
+    """
+    def debug(self):
+        """
+        Print the current internal state for debugging purposes.
+        """
+        print("Held Keys:", self.key_state)
+        print("Held Mouse Buttons:", self.mouse_state)
+        print("Action to Key:", self.action_to_key)
+        print("Action to Mouse:", self.action_to_mouse)
+        print("Local Key Down Callbacks:", list(self.local_key_down_callbacks.keys()))
+        print("Local Key Up Callbacks:", list(self.local_key_up_callbacks.keys()))
+        print("Local Mouse Down Callbacks:", list(self.local_mouse_down_callbacks.keys()))
+        print("Local Mouse Up Callbacks:", list(self.local_mouse_up_callbacks.keys()))
+        print("Global Key Down Callbacks:", list(self.global_key_down_callbacks.keys()))
+        print("Global Key Up Callbacks:", list(self.global_key_up_callbacks.keys()))
+        print("Global Mouse Down Callbacks:", list(self.global_mouse_down_callbacks.keys()))
+        print("Global Mouse Up Callbacks:", list(self.global_mouse_up_callbacks.keys()))
+        print()

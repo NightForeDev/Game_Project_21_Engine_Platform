@@ -15,7 +15,6 @@ class WindowManager:
     Attributes:
         Class Attributes:
             class_name (str): Name of the class.
-            config (dict): Loaded configuration dictionary for this class.
             clock (pygame.time.Clock): Optional clock for FPS display.
 
         Caption Attributes:
@@ -45,7 +44,7 @@ class WindowManager:
 
     Methods:
         Configuration:
-            _load_config(): Load settings from configuration and initialize attributes.
+            load_config(config): Load settings from configuration and initialize attributes.
             _apply_surface_sizes(): Apply current render and scaled sizes.
             set_caption(tag, title, version, display_tag, display_version, display_fps): Sets the window caption.
             set_flags(resizable, borderless, fullscreen): Sets the display surface flags.
@@ -69,6 +68,9 @@ class WindowManager:
             toggle_resizable(): Toggles resizable window mode.
             toggle_fullscreen(): Toggles fullscreen window mode.
 
+        Debug:
+            debug(): Print the current internal state for debugging purposes.
+
         Operations:
             _update_caption(): Updates the window caption.
             update(): Updates the class.
@@ -77,7 +79,6 @@ class WindowManager:
     def __init__(self, app_config, clock=None):
         # Class Attributes
         self.class_name = self.__class__.__name__
-        self.config = app_config[self.class_name]
         self.clock = clock
 
         # Caption Attributes
@@ -109,18 +110,18 @@ class WindowManager:
         os.environ['SDL_VIDEO_CENTERED'] = '1'
 
         # Initialize
-        self._load_config()
+        self.load_config(app_config[self.class_name])
 
     """
     Configuration
-        _load_config
+        load_config
         _apply_surface_sizes
         set_caption
         set_flags
         set_render_size
         set_scaled_size
     """
-    def _load_config(self):
+    def load_config(self, config):
         """
         Load settings from configuration and initialize attributes.
         """
@@ -128,12 +129,12 @@ class WindowManager:
         self.flags = 0
 
         # Apply configuration values
-        self.set_caption(self.config['tag'], self.config['title'], self.config['version'], self.config['display_tag'], self.config['display_version'], self.config['display_fps'])
-        self.set_render_size(self.config['render_width'], self.config['render_height'])
-        self.set_scaled_size(self.config['scaled_width'], self.config['scaled_height'])
-        self.toggle_resizable(self.config['resizable'])
-        self.toggle_borderless(self.config['borderless'])
-        self.toggle_fullscreen(self.config['fullscreen'])
+        self.set_caption(config['tag'], config['title'], config['version'], config['display_tag'], config['display_version'], config['display_fps'])
+        self.set_render_size(config['render_width'], config['render_height'])
+        self.set_scaled_size(config['scaled_width'], config['scaled_height'])
+        self.toggle_resizable(config['resizable'])
+        self.toggle_borderless(config['borderless'])
+        self.toggle_fullscreen(config['fullscreen'])
 
     def _apply_surface_sizes(self):
         """
@@ -476,8 +477,12 @@ class WindowManager:
 
     """
     Debug
+        debug
     """
     def debug(self):
+        """
+        Print the current internal state for debugging purposes.
+        """
         print(self.render_size)
         print(self.scaled_size)
         print(self.windowed_size)

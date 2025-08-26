@@ -16,7 +16,7 @@ class MenuScene(Scene):
 
         self.font = pygame.font.SysFont(None, self.font_size)
         self.input_manager = game.input_manager
-        self.input_manager.clear_callbacks()
+        self.input_manager.clear_local_callbacks()
 
         self.selected_index = 0
         self.waiting_for_key = False
@@ -56,7 +56,7 @@ class MenuScene(Scene):
 
             new_key = event.key
             action = self.ACTIONS[self.selected_index]
-            self.input_manager.map_action_to_key(action, new_key)
+            self.input_manager.map_action_to_key(new_key, action)
             self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
             self.waiting_for_key = False
         else:
