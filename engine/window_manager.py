@@ -10,7 +10,7 @@ SW_RESTORE = 9
 
 class WindowManager:
     """
-    WindowManager handles Pygame window creation, configuration, and display state.
+    Manages Pygame window creation, configuration, resizing, and display state.
 
     Attributes:
         Class Attributes:
@@ -124,15 +124,16 @@ class WindowManager:
         """
         Load settings from configuration and initialize attributes.
         """
+        # Initialize attributes
+        self.flags = 0
+
         # Apply configuration values
         self.set_caption(self.config['tag'], self.config['title'], self.config['version'], self.config['display_tag'], self.config['display_version'], self.config['display_fps'])
-        self.set_flags(self.config['resizable'], self.config['borderless'], self.config['fullscreen'])
         self.set_render_size(self.config['render_width'], self.config['render_height'])
         self.set_scaled_size(self.config['scaled_width'], self.config['scaled_height'])
-
-        # Initialize attributes
-        self.windowed_size = self.scaled_size
-        self._apply_surface_sizes()
+        self.toggle_resizable(self.config['resizable'])
+        self.toggle_borderless(self.config['borderless'])
+        self.toggle_fullscreen(self.config['fullscreen'])
 
     def _apply_surface_sizes(self):
         """
@@ -172,26 +173,6 @@ class WindowManager:
             self.display_version = display_version
         if display_fps is not None:
             self.display_fps = display_fps
-
-    def set_flags(self, resizable=None, borderless=None, fullscreen=None):
-        """
-        Sets the display surface flags.
-
-        Args:
-            resizable (bool): Enable or disable window resizing
-            borderless (bool): Enable or disable borderless mode
-            fullscreen (bool): Enable or disable fullscreen mode
-        """
-        # Update flag state
-        if resizable is not None:
-            self.resizable = resizable
-        if borderless is not None:
-            self.borderless = borderless
-        if fullscreen is not None:
-            self.fullscreen = fullscreen
-
-        # Compute Pygame flags
-        self.flags = self._compute_flags()
 
     def set_render_size(self, width=None, height=None):
         """
@@ -416,23 +397,25 @@ class WindowManager:
                 # Maximize the window
                 self._maximize_window()
 
-    def toggle_borderless(self):
+    def toggle_borderless(self, state=None):
         """
         Toggles borderless window mode.
+
+        Args:
+            state (bool, optional): True to enable, False to disable, None to toggle.
         """
         # Early return if action is not applicable
-        if not self.resizable:
+        if state is not None and state == self.borderless or not self.resizable:
             return
 
         # Restore to apply new flags correctly
         hwnd = pygame.display.get_wm_info()['window']
         is_maximized = ctypes.windll.user32.IsZoomed(hwnd)
         if is_maximized:
-            print("ok")
             self._restore_window()
 
         # Update Pygame display flags
-        self.borderless = not self.borderless
+        self.borderless = not self.borderless if state is None else state
         self.fullscreen = False
         self.flags = self._compute_flags()
         self.display_surface = pygame.display.set_mode(self.windowed_size, self.flags)
@@ -441,25 +424,35 @@ class WindowManager:
         if self.borderless:
             self._maximize_window()
 
-    def toggle_resizable(self):
+    def toggle_resizable(self, state=None):
         """
         Toggles resizable window mode.
+
+        Args:
+            state (bool, optional): True to enable, False to disable, None to toggle.
         """
         # Early return if action is not applicable
-        if self.maximized or self.fullscreen:
+        if state is not None and state == self.resizable or self.maximized or self.fullscreen:
             return
 
         # Update Pygame display flags
-        self.resizable = not self.resizable
+        self.resizable = not self.resizable if state is None else state
         self.flags = self._compute_flags()
         self.display_surface = pygame.display.set_mode(self.windowed_size, self.flags)
 
-    def toggle_fullscreen(self):
+    def toggle_fullscreen(self, state=None):
         """
         Toggles fullscreen window mode.
+
+        Args:
+            state (bool, optional): True to enable, False to disable, None to toggle.
         """
+        # Early return if action is not applicable
+        if state is not None and state == self.fullscreen:
+            return
+
         # Update Pygame display flags
-        self.fullscreen = not self.fullscreen
+        self.fullscreen = not self.fullscreen if state is None else state
         self.borderless = False
         self.flags = self._compute_flags()
 
