@@ -22,13 +22,29 @@ class InitialScene(Scene):
         self.selected_index = 0
 
         self.games = self.list_games()
-        self.input_manager.bind_mouse_down(1, self.mouse_left_click)
-        self.input_manager.bind_key_down(pygame.K_UP, self.select_up)
-        self.input_manager.bind_key_down(pygame.K_DOWN, self.select_down)
-        self.input_manager.bind_key_down(pygame.K_RETURN, self.select_confirm)
 
         self.launched_games = {}
         self.debug = debug
+
+        self.setup_input()
+
+    """
+    Input Methods
+        setup_input
+    """
+
+    def setup_input\
+                    (self):
+        """Bind and map keys and mouse buttons to actions or callbacks."""
+        input_config = {
+            "bind": [
+                {"mouse": 1, "callback": self.mouse_left_click},
+                {"key": pygame.K_UP, "callback": self.select_up},
+                {"key": pygame.K_DOWN, "callback": self.select_down},
+                {"key": pygame.K_RETURN, "callback": self.select_confirm}
+            ]
+        }
+        self.input_manager.load_config(input_config)
 
     @staticmethod
     def list_games():

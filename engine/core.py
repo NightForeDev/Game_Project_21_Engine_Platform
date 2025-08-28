@@ -38,15 +38,16 @@ class Core:
         self.previous_scene = None
 
         # Class Initialization
-        self.register_shortcuts()
+        self.setup_input()
         self.init_scene = initial_scene_class
         self.current_scene = initial_scene_class(self)
 
-    def restart_game(self):
-        self.__init__(self.init_scene)
-
-    def register_shortcuts(self):
-        """Bind system keys."""
+    """
+    Input Methods
+        setup_input
+    """
+    def setup_input(self):
+        """Bind and map keys and mouse buttons to actions or callbacks."""
         input_config = {
             "bind": [
                 {"key": pygame.K_ESCAPE, "callback": self.quit_game, "global": True},
@@ -59,8 +60,10 @@ class Core:
                 {"key": pygame.K_F12, "callback": self.input_manager.debug, "global": True},
             ]
         }
-
         self.input_manager.load_config(input_config)
+
+    def restart_game(self):
+        self.__init__(self.init_scene)
 
     def change_scene(self, scene_class):
         """Switch to a new scene."""

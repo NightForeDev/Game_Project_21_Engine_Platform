@@ -13,11 +13,26 @@ class InitialScene(Scene):
         self.input_manager = game.input_manager
         self.input_manager.clear_local_callbacks()
 
-        self.input_manager.bind_key_down(pygame.K_m, self.open_menu)
+        self.setup_input()
 
-        self.input_manager.map_action_to_key(pygame.K_LEFT, 'move_left')
-        self.input_manager.map_action_to_key(pygame.K_RIGHT, 'move_right')
-        self.input_manager.map_action_to_key(pygame.K_SPACE, 'jump')
+    """
+    Input Methods
+        setup_input
+    """
+    def setup_input(self):
+        """Bind and map keys and mouse buttons to actions or callbacks."""
+        input_config = {
+            "bind": [
+                {"key": pygame.K_m, "callback": self.open_menu}
+            ],
+            "map": {
+                "move_left": {"key": pygame.K_LEFT},
+                "move_right": {"key": pygame.K_RIGHT},
+                "jump": {"key": pygame.K_SPACE}
+            }
+        }
+
+        self.input_manager.load_config(input_config)
 
     def open_menu(self):
         self.game.change_scene(MenuScene)

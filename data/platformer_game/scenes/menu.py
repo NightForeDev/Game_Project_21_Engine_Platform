@@ -1,3 +1,5 @@
+# data\platformer_game\scenes\menu.py
+
 import pygame
 from engine.scene import Scene
 
@@ -27,6 +29,25 @@ class MenuScene(Scene):
         self.blink_timer = 0
         self.blink_visible = True
 
+        self.setup_input()
+
+    """
+    Input Methods
+        setup_input
+    """
+    def setup_input(self):
+        """Configure menu input (navigation, confirm, cancel, exit)."""
+        input_config = {
+            "bind": [
+                {"key": pygame.K_m, "callback": self.exit_menu},
+                {"key": pygame.K_UP, "callback": self.select_up},
+                {"key": pygame.K_DOWN, "callback": self.select_down},
+                {"key": pygame.K_RETURN, "callback": self.select_confirm},
+                {"key": pygame.K_r, "callback": self.cancel_rebind},
+            ]
+        }
+        self.input_manager.load_config(input_config)
+
     def exit_menu(self):
         self.game.return_scene()
 
@@ -48,29 +69,27 @@ class MenuScene(Scene):
         self.waiting_for_key = False
         self.message = "Rebinding cancelled. Use Up/Down to select, Enter to rebind, M to return"
 
-    def assign_key(self, event):
-        if self.waiting_for_key:
-            if event.key == pygame.K_ESCAPE:
-                self.cancel_rebind()
-                return
-
-            new_key = event.key
-            action = self.ACTIONS[self.selected_index]
-            self.input_manager.map_action_to_key(new_key, action)
-            self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
-            self.waiting_for_key = False
-        else:
-            if event.key == pygame.K_UP:
-                self.select_up()
-            elif event.key == pygame.K_DOWN:
-                self.select_down()
-            elif event.key == pygame.K_RETURN:
-                self.select_confirm()
-
     def handle_events(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
                 self.assign_key(event)
+
+    def assign_key(self, event):
+        if not self.waiting_for_key:
+            return
+
+        if event.key == pygame.K_ESCAPE:
+            self.cancel_rebind()
+            return
+
+        if event.key == pygame.K_RETURN:
+            return
+
+        new_key = event.key
+        action = self.ACTIONS[self.selected_index]
+        self.input_manager.map_action_to_key(new_key, action)
+        self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
+        self.waiting_for_key = False
 
     def update(self, dt):
         if self.waiting_for_key:
