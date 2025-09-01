@@ -15,6 +15,10 @@ class WindowManager:
     Attributes:
         Class Attributes:
             class_name (str): Name of the class.
+            app_config (dict): Full application configuration.
+            config (dict): Configuration specific to the class.
+
+        Core Attributes:
             clock (pygame.time.Clock): Optional clock for FPS display.
 
         Caption Attributes:
@@ -76,9 +80,13 @@ class WindowManager:
             update(): Updates the class.
             render(): Renders the class.
     """
-    def __init__(self, app_config, clock=None):
+    def __init__(self, app_config=None, clock=None):
         # Class Attributes
         self.class_name = self.__class__.__name__
+        self.app_config = app_config
+        self.config = self.app_config[self.class_name]
+
+        # Core Attributes
         self.clock = clock
 
         # Caption Attributes
@@ -109,8 +117,8 @@ class WindowManager:
         # Set the environment variable to center the game window.
         os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-        # Initialize
-        self.load_config(app_config[self.class_name])
+        # Initialization
+        self.load_config(self.config)
 
     """
     Configuration
@@ -125,6 +133,10 @@ class WindowManager:
         """
         Load settings from configuration and initialize attributes.
         """
+        # Early return if action is not applicable
+        if config is None:
+            return
+
         # Initialize attributes
         self.flags = 0
 

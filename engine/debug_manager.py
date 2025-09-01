@@ -1,12 +1,11 @@
-# engine\debug.py
+# engine\debug_manager.py
 
 import time
-
 import pygame
 
 from .draw_utils import draw_text
 
-class Debug:
+class DebugManager:
     def __init__(self, core):
         self.core = core
         self.visible = False

@@ -6,11 +6,11 @@ from data.platformer_game.entities.player import Player
 from data.platformer_game.scenes.menu import MenuScene
 
 class InitialScene(Scene):
-    def __init__(self, game):
-        super().__init__(game)
+    def __init__(self, core):
+        super().__init__(core)
         self.player = Player(100, 300)
         self.ground_y = 400
-        self.input_manager = game.input_manager
+        self.input_manager = core.input_manager
         self.input_manager.clear_local_callbacks()
 
         self.setup_input()

@@ -7,6 +7,11 @@ class InputManager:
     Manages input including state tracking, action mapping, and local/global callback handling.
 
     Attributes:
+        Class Attributes:
+            class_name (str): Name of the class.
+            app_config (dict): Full application configuration.
+            config (dict): Configuration specific to the class.
+
         State Attributes:
             key_state (dict[int, bool]): Current pressed state of keyboard keys.
             mouse_state (dict[int, bool]): Current pressed state of mouse buttons.
@@ -52,7 +57,12 @@ class InputManager:
         Debug:
             debug(): Print the current internal state for debugging purposes.
     """
-    def __init__(self):
+    def __init__(self, app_config=None):
+        # Class Attributes
+        self.class_name = self.__class__.__name__
+        self.app_config = app_config
+        self.config = self.app_config[self.class_name]
+
         # State Attributes
         self.key_state = {}
         self.mouse_state = {}
@@ -73,6 +83,9 @@ class InputManager:
         self.action_to_key = {}
         self.action_to_mouse = {}
 
+        # Initialization
+        self.load_config(self.config)
+
     """
     Configuration
         load_config
@@ -81,6 +94,10 @@ class InputManager:
         """
         Load settings from configuration and initialize attributes.
         """
+        # Early return if action is not applicable
+        if config is None:
+            return
+
         # Map actions
         for action, mapping in config.get("map", {}).items():
             key = mapping.get("key")

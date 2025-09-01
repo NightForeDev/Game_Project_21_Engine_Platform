@@ -8,8 +8,8 @@ class MenuScene(Scene):
     PADDING_RATIO = 0.03         # 3% of screen width for padding
     ACTIONS = ['move_left', 'move_right', 'jump']
 
-    def __init__(self, game):
-        super().__init__(game)
+    def __init__(self, core):
+        super().__init__(core)
 
         self.screen_w, self.screen_h = pygame.display.get_surface().get_size()
         self.font_size = max(16, int(self.screen_h * self.BASE_FONT_SIZE_RATIO))
@@ -17,7 +17,7 @@ class MenuScene(Scene):
         self.line_spacing = self.font_size + 8
 
         self.font = pygame.font.SysFont(None, self.font_size)
-        self.input_manager = game.input_manager
+        self.input_manager = core.input_manager
         self.input_manager.clear_local_callbacks()
 
         self.selected_index = 0

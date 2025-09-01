@@ -12,8 +12,8 @@ CURRENT_FOLDER = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 IGNORE_FOLDERS = {CURRENT_FOLDER, SHARED_FOLDER}
 
 class InitialScene(Scene):
-    def __init__(self, game, debug=False):
-        super().__init__(game)
+    def __init__(self, core, debug=False):
+        super().__init__(core)
 
         self.font = pygame.font.SysFont(None, 28)
         self.bg_color = (40, 40, 40)
