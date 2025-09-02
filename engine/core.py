@@ -10,7 +10,7 @@ from engine.input_manager import InputManager
 
 class Core:
     """
-    Core engine class responsible for events, updating logic, and rendering frames.
+    Core engine class responsible for managing the application.
 
     Attributes:
         Class Attributes:
@@ -30,46 +30,124 @@ class Core:
             input_manager (InputManager): Handles input state and callbacks.
 
         State Attributes:
-            running (bool): Flag controlling the main loop.
+            running (bool): Controls whether the main loop is active.
 
         Scene Attributes:
-            current_scene (Scene): Currently active scene.
-            previous_scene (Scene): Previously active scene.
-            initial_scene (type): Class reference for the initial scene.
+            initial_scene_class (type): Class reference to the initial scene.
+            current_scene (Scene): Currently active scene instance.
+            previous_scene (Scene): Previously active scene instance.
 
     Methods:
         Initialization:
-            setup_input(): Configure input bindings.
+            _setup(run): Initialize and prepare all components.
+            _setup_input(): Configure key bindings and action mappings.
+            setup_initial_engine(): Initialize core engine systems and managers.
+            setup_initial_scene(): Set the initial scene instance.
 
         Scene Management:
             change_scene(scene_class): Switch to a new scene.
             return_scene(): Return to the previous scene.
 
-        Main Loop:
-            run(): Main game loop.
+        Runtime:
+            _run(): Executes the main loop.
             _events(): Process pygame and user events.
-
-        System:
-            restart_game(): Restart the game from the initial scene.
             quit_game(): Exit the game.
 
         Operations:
-            update(): Updates the class.
-            render(): Renders the class.
+            update(): Update all components.
+            render(): Render all components.
     """
-    def __init__(self, initial_scene_class):
-        """Set up the game."""
-        # Initialize pygame and random seed
-        pygame.mixer.pre_init(44100, -16, 2, 2048)
-        pygame.init()
-        pygame.mixer.init()
-        random.seed()
-        app_config = load_config()
+    def __init__(self, initial_scene_class, app_config=None, run=True):
+        """
+        Initialize the class.
+
+        Args:
+            initial_scene_class (type): Class reference to the initial scene.
+            app_config (dict, optional): Preloaded application config.
+            run (bool): Whether to start the main loop after setup.
+        """
+        # Load application configuration if not provided
+        if app_config is None:
+            app_config = load_config()
 
         # Class Attributes
         self.class_name = self.__class__.__name__
         self.app_config = app_config
         self.config = self.app_config[self.class_name]
+
+        # Time Attributes
+        self.fps = None
+        self.clock = None
+        self.dt = None
+        self.total_play_time = None
+
+        # Manager Attributes
+        self.debug_manager = None
+        self.window_manager = None
+        self.input_manager = None
+
+        # State Attributes
+        self.running = None
+
+        # Scene Attributes
+        self.initial_scene_class = initial_scene_class
+        self.current_scene = None
+        self.previous_scene = None
+
+        # Initialize all components
+        self._setup(run)
+
+    """
+    Initialization
+        _setup
+        _setup_input
+        setup_initial_engine
+        setup_initial_scene
+    """
+    def _setup(self, run):
+        """
+        Initialize and prepare all components.
+
+        Args:
+            run (bool): Whether to start the main loop after setup.
+        """
+        # Initialize components
+        self.setup_initial_engine()
+
+        # Start process
+        if run:
+            self._run()
+
+    def _setup_input(self):
+        """
+        Configure key bindings and action mappings.
+        """
+        input_config = {
+            "bind": [
+                {"key": pygame.K_ESCAPE, "callback": self.quit_game, "global": True},
+                {"key": pygame.K_F1, "callback": self.debug_manager.toggle, "global": True},
+                {"key": pygame.K_F3, "callback": self.window_manager.toggle_borderless, "global": True},
+                {"key": pygame.K_F4, "callback": self.window_manager.toggle_maximized, "global": True},
+                {"key": pygame.K_F5, "callback": self.setup_initial_engine, "global": True},
+                {"key": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
+                {"key": pygame.K_F10, "callback": self.input_manager.debug, "global": True},
+                {"key": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
+                {"key": pygame.K_F12, "callback": self.setup_initial_scene, "global": True},
+            ],
+            "map": {
+            }
+        }
+        self.input_manager.load_config(input_config)
+
+    def setup_initial_engine(self):
+        """
+        Initialize core engine systems and managers.
+        """
+        # Initialize pygame and random seed
+        pygame.mixer.pre_init(44100, -16, 2, 2048)
+        pygame.init()
+        pygame.mixer.init()
+        random.seed()
 
         # Time Attributes
         self.fps = self.config["fps"]
@@ -85,36 +163,16 @@ class Core:
         # State Attributes
         self.running = True
 
-        # Scene Attributes
-        self.current_scene = None
+        # Prepare remaining components
+        self.setup_initial_scene()
+        self._setup_input()
+
+    def setup_initial_scene(self):
+        """
+        Set the initial scene instance.
+        """
         self.previous_scene = None
-        self.initial_scene = initial_scene_class
-
-        # Initialization
-        self.setup_input()
-        self.restart_game()
-
-    """
-    Initialization
-        setup_input
-    """
-    def setup_input(self):
-        """
-        Bind and map keys and mouse buttons to actions or callbacks.
-        """
-        input_config = {
-            "bind": [
-                {"key": pygame.K_ESCAPE, "callback": self.quit_game, "global": True},
-                {"key": pygame.K_F1, "callback": self.debug_manager.toggle, "global": True},
-                {"key": pygame.K_F3, "callback": self.window_manager.toggle_borderless, "global": True},
-                {"key": pygame.K_F4, "callback": self.window_manager.toggle_maximized, "global": True},
-                {"key": pygame.K_F5, "callback": self.restart_game, "global": True},
-                {"key": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
-                {"key": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
-                {"key": pygame.K_F12, "callback": self.input_manager.debug, "global": True},
-            ]
-        }
-        self.input_manager.load_config(input_config)
+        self.current_scene = self.initial_scene_class(self)
 
     """
     Scene Management
@@ -135,13 +193,14 @@ class Core:
         self.current_scene = self.previous_scene
 
     """
-    Main Loop
-        run
+    Runtime
+        _run
         _events
+        quit_game
     """
-    def run(self):
+    def _run(self):
         """
-        Main loop.
+        Executes the main loop.
         """
         while self.running:
             # Update time (seconds)
@@ -171,17 +230,6 @@ class Core:
         # Scene-level events
         self.current_scene.handle_events(events)
 
-    """
-    System
-        restart_game
-        quit_game
-    """
-    def restart_game(self):
-        """
-        Restart from the initial scene.
-        """
-        self.__init__(self.initial_scene)
-
     def quit_game(self):
         """
         Exit the game.
@@ -197,7 +245,7 @@ class Core:
     """
     def update(self):
         """
-        Update the class.
+        Update all components.
         """
         self.window_manager.update()
         self.current_scene.update(self.dt)
@@ -205,7 +253,7 @@ class Core:
 
     def render(self):
         """
-        Render the class.
+        Render all components.
         """
         self.current_scene.render(self.window_manager.render_surface)
         self.debug_manager.draw(self.window_manager.render_surface)

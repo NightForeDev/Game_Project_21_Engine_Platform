@@ -112,7 +112,7 @@ class WindowManager:
         # Surface Attributes
         self.render_surface = None
         self.display_surface = None
-        self.display_gap = (0, 0)
+        self.display_gap = None
 
         # Set the environment variable to center the game window.
         os.environ['SDL_VIDEO_CENTERED'] = '1'
