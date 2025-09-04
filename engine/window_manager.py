@@ -48,6 +48,7 @@ class WindowManager:
 
     Methods:
         Configuration:
+            _setup(): Initialize and prepare all components.
             load_config(config): Load settings from configuration and initialize attributes.
             _apply_surface_sizes(): Apply current render and scaled sizes.
             set_caption(tag, title, version, display_tag, display_version, display_fps): Sets the window caption.
@@ -77,8 +78,8 @@ class WindowManager:
 
         Operations:
             _update_caption(): Updates the window caption.
-            update(): Updates the class.
-            render(): Renders the class.
+            update(): Updates all components.
+            render(): Renders all components.
     """
     def __init__(self, app_config=None, clock=None):
         # Class Attributes
@@ -114,14 +115,12 @@ class WindowManager:
         self.display_surface = None
         self.display_gap = None
 
-        # Set the environment variable to center the game window.
-        os.environ['SDL_VIDEO_CENTERED'] = '1'
-
-        # Initialization
-        self.load_config(self.config)
+        # Initialize all components
+        self._setup()
 
     """
     Configuration
+        _setup
         load_config
         _apply_surface_sizes
         set_caption
@@ -129,6 +128,19 @@ class WindowManager:
         set_render_size
         set_scaled_size
     """
+    def _setup(self):
+        """
+        Initialize and prepare all components.
+        """
+        # Set environment variable to center the game window
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
+
+        # Initialize attributes
+        self.flags = 0
+
+        # Load configuration
+        self.load_config(self.config)
+
     def load_config(self, config):
         """
         Load settings from configuration and initialize attributes.
@@ -136,9 +148,6 @@ class WindowManager:
         # Early return if action is not applicable
         if config is None:
             return
-
-        # Initialize attributes
-        self.flags = 0
 
         # Apply configuration values
         self.set_caption(config['tag'], config['title'], config['version'], config['display_tag'], config['display_version'], config['display_fps'])
@@ -152,10 +161,14 @@ class WindowManager:
         """
         Apply current render and scaled sizes
         """
-        if self.render_size and self.scaled_size:
-            self.render_surface = pygame.Surface(self.render_size)
-            self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
-            self.resize()
+        # Early return if either size is missing
+        if not self.render_size or not self.scaled_size:
+            return
+
+        # Apply new settings
+        self.render_surface = pygame.Surface(self.render_size)
+        self.display_surface = pygame.display.set_mode(self.scaled_size, self.flags)
+        self.resize()
 
     def set_caption(self, tag=None, title=None, version=None, display_tag=None, display_version=None, display_fps=None):
         """
@@ -187,6 +200,9 @@ class WindowManager:
         if display_fps is not None:
             self.display_fps = display_fps
 
+        # Apply new settings
+        self._update_caption()
+
     def set_render_size(self, width=None, height=None):
         """
         Sets the render surface size.
@@ -206,7 +222,7 @@ class WindowManager:
         # Update surface size
         self.render_size = width, height
 
-        # Apply new surface sizes
+        # Apply new settings
         self._apply_surface_sizes()
 
     def set_scaled_size(self, width=None, height=None):
@@ -228,7 +244,7 @@ class WindowManager:
         # Update surface size
         self.scaled_size = width, height
 
-        # Apply new surface sizes
+        # Apply new settings
         self._apply_surface_sizes()
 
     """
@@ -537,14 +553,14 @@ class WindowManager:
 
     def update(self):
         """
-        Updates the class.
+        Updates all components.
         """
         if self.display_fps and self.clock:
             self._update_caption()
 
     def render(self):
         """
-        Renders the class.
+        Renders all components.
         """
         scaled_surface = pygame.transform.scale(self.render_surface, self.scaled_size)
         self.display_surface.blit(scaled_surface, self.display_gap)

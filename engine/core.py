@@ -1,8 +1,8 @@
 # engine\core.py
 
 import random
+import sys
 import pygame
-
 from engine.config_loader import load_config
 from engine.debug_manager import DebugManager
 from engine.window_manager import WindowManager
@@ -38,7 +38,7 @@ class Core:
             previous_scene (Scene): Previously active scene instance.
 
     Methods:
-        Initialization:
+        Configuration:
             _setup(run): Initialize and prepare all components.
             _setup_input(): Configure key bindings and action mappings.
             setup_initial_engine(): Initialize core engine systems and managers.
@@ -98,7 +98,7 @@ class Core:
         self._setup(run)
 
     """
-    Initialization
+    Configuration
         _setup
         _setup_input
         setup_initial_engine
@@ -236,7 +236,7 @@ class Core:
         """
         self.running = False
         pygame.quit()
-        quit()
+        sys.exit()
 
     """
     Operations
