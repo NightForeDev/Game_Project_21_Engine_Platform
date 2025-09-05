@@ -34,7 +34,8 @@ class InputManager:
 
     Methods:
         Configuration:
-            load_config(config): Load default key and mouse mappings from configuration.
+            _setup(): Initialize and prepare all components.
+            load_config(config): Load settings from configuration and initialize attributes.
 
         Callback Management:
             clear_local_callbacks(): Remove all local callbacks.
@@ -83,13 +84,21 @@ class InputManager:
         self.action_to_key = {}
         self.action_to_mouse = {}
 
-        # Initialization
-        self.load_config(self.config)
+        # Initialize all components
+        self._setup()
 
     """
     Configuration
+        _setup
         load_config
     """
+    def _setup(self):
+        """
+        Initialize and prepare all components.
+        """
+        # Load configuration
+        self.load_config(self.config)
+
     def load_config(self, config):
         """
         Load settings from configuration and initialize attributes.
@@ -126,14 +135,18 @@ class InputManager:
         clear_all_callbacks
     """
     def clear_local_callbacks(self):
-        """Remove all local callbacks."""
+        """
+        Remove all local callbacks.
+        """
         self.local_key_down_callbacks.clear()
         self.local_key_up_callbacks.clear()
         self.local_mouse_down_callbacks.clear()
         self.local_mouse_up_callbacks.clear()
 
     def clear_all_callbacks(self):
-        """Remove all callbacks."""
+        """
+        Remove all callbacks.
+        """
         self.clear_local_callbacks()
         self.global_key_down_callbacks.clear()
         self.global_key_up_callbacks.clear()
