@@ -1,5 +1,5 @@
 {
-  "Core": {
+  "CoreManager": {
     "fps": 60
   },
   "AudioManager": {

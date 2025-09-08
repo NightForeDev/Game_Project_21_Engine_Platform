@@ -1,7 +1,7 @@
 # data\platformer_game\main.py
 
 from .scenes.initial_scene import InitialScene
-from engine.core import Core
+from engine.core_manager import CoreManager
 
 def main():
-    Core(InitialScene)
+    CoreManager(InitialScene)

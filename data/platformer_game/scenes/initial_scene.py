@@ -20,7 +20,9 @@ class InitialScene(Scene):
         setup_input
     """
     def setup_input(self):
-        """Bind and map keys and mouse buttons to actions or callbacks."""
+        """
+        Configure key bindings and action mappings.
+        """
         input_config = {
             "bind": [
                 {"key": pygame.K_m, "callback": self.open_menu}
@@ -37,7 +39,7 @@ class InitialScene(Scene):
     def open_menu(self):
         self.game.change_scene(MenuScene)
 
-    def handle_events(self, events):
+    def events(self, events):
         pass
 
     def update(self, dt):

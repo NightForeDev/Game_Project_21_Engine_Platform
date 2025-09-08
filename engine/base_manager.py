@@ -1,10 +1,11 @@
-# engine/template_manager.py
+# engine/base_manager.py
 
-import pygame
+from abc import ABC, abstractmethod
+from engine.config_loader import load_config
 
-class TemplateManager:
+class BaseManager(ABC):
     """
-    Manage ...
+    Abstract base class for managers.
 
     Attributes:
         Class Attributes:
@@ -12,35 +13,28 @@ class TemplateManager:
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
 
-        Template Attributes:
-            templates (...): ...
-
-        State Attributes:
-            ... (...): ...
-
     Methods:
         Configuration:
-            _setup(): Initialize and prepare all components.
-            load_config(config): Load settings from configuration and initialize attributes.
+            _setup(): Initialize components.
+            load_config(config): Load settings from configuration.
 
         Debug:
-            debug(): Print the current internal state for debugging purposes.
+            debug(): Print debug information.
 
         Operations:
-            update(): Update all components.
-            render(): Render all components.
+            events(events): Process components events.
+            update(dt): Update components.
+            render(surface): Render components.
     """
     def __init__(self, app_config=None):
+        # Load application configuration if not provided
+        if app_config is None:
+            app_config = load_config()
+
         # Class Attributes
         self.class_name = self.__class__.__name__
         self.app_config = app_config if app_config else {}
         self.config = self.app_config.get(self.class_name, {})
-
-        # Template Attributes
-        self.templates = None
-
-        # State Attributes
-        # (Reserved for future use)
 
         # Initialize
         self._setup()
@@ -50,24 +44,28 @@ class TemplateManager:
         _setup
         load_config
     """
+    @abstractmethod
     def _setup(self):
         """
-        Initialize and prepare all components.
+        Initialize components.
         """
         # Load configuration
         self.load_config(self.config)
 
+        # Initialize components
+        pass
+
+    @abstractmethod
     def load_config(self, config):
         """
-        Load settings from configuration and initialize attributes.
+        Load settings from configuration.
         """
         # Early return if action is not applicable
         if config is None:
             return
 
         # Apply configuration values
-        for name, template in config.get("templates", {}).items():
-            self.templates[name] = template
+        pass
 
     """
     Debug
@@ -77,22 +75,25 @@ class TemplateManager:
         """
         Print debug information.
         """
-        print(f"{self.class_name} Templates: {list(self.templates.keys())}")
-        print()
+        print(f"{self.class_name}: no debug info implemented.")
 
     """
     Operations
+        events
         update
         render
     """
-    def update(self):
-        """
-        Update all components.
-        """
+    @abstractmethod
+    def events(self, events):
+        """Process components events."""
         pass
 
-    def render(self):
-        """
-        Render all components.
-        """
+    @abstractmethod
+    def update(self, dt):
+        """Update components."""
+        pass
+
+    @abstractmethod
+    def render(self, surface):
+        """Render components."""
         pass

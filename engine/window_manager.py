@@ -18,7 +18,7 @@ class WindowManager:
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
 
-        Core Attributes:
+        Time Attributes:
             clock (pygame.time.Clock): Optional clock for FPS display.
 
         Caption Attributes:
@@ -87,7 +87,7 @@ class WindowManager:
         self.app_config = app_config
         self.config = self.app_config[self.class_name]
 
-        # Core Attributes
+        # Time Attributes
         self.clock = clock
 
         # Caption Attributes

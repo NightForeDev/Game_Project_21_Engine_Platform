@@ -7,6 +7,7 @@ import pygame
 
 from data.shared.constants import SHARED_FOLDER, DATA_FOLDER
 from engine.scene import Scene
+from engine.ui_manager import UIManager
 
 CURRENT_FOLDER = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 IGNORE_FOLDERS = {CURRENT_FOLDER, SHARED_FOLDER}
@@ -19,26 +20,38 @@ class InitialScene(Scene):
         self.bg_color = (40, 40, 40)
         self.text_color = (220, 220, 220)
         self.highlight_color = (70, 130, 180)
-        self.selected_index = 0
 
         self.games = self.list_games()
-
         self.launched_games = {}
         self.debug = debug
 
-        self.setup_input()
+        self.selected_index = 0
+
+        self.ui = UIManager(self.core.app_config if hasattr(self, "core") else None)
+        self._setup_ui()
+
+        self._setup_input()
 
     """
-    Input Methods
-        setup_input
+    Configuration
+        _setup
+        _setup_input
+        _setup_ui
     """
+    def _setup(self, run):
+        """
+        Initialize and prepare all components.
+        """
+        # Initialize components
+        self._setup_input()
+        self._setup_ui()
 
-    def setup_input\
-                    (self):
-        """Bind and map keys and mouse buttons to actions or callbacks."""
+    def _setup_input(self):
+        """
+        Configure key bindings and action mappings.
+        """
         input_config = {
             "bind": [
-                {"mouse": 1, "callback": self.mouse_left_click},
                 {"key": pygame.K_UP, "callback": self.select_up},
                 {"key": pygame.K_DOWN, "callback": self.select_down},
                 {"key": pygame.K_RETURN, "callback": self.select_confirm}
@@ -53,26 +66,117 @@ class InitialScene(Scene):
             if os.path.isdir(os.path.join(DATA_FOLDER, name)) and name not in IGNORE_FOLDERS
         ]
 
-    def mouse_left_click(self):
-        mx, my = pygame.mouse.get_pos()
-        start_y = 50
+    def _setup_ui(self):
+        """
+        Build title label and buttons for each game plus a Quit button.
+        Buttons call launch_game(name) when clicked.
+        """
+        # Title label
+        title_h = 40
+        label = {
+            "type": "UILabel",
+            "text": "Select a game to launch:",
+            "x": 20,
+            "y": 10,
+            "w": 600,
+            "h": title_h,
+            "font": self.font,
+            "color": self.text_color,
+            "align": "left",
+        }
+        self.ui.create_element("title", "UILabel", **label)
+
+        # Buttons area
+        start_y = 60
+        btn_w = 300
+        btn_h = 32
+        gap = 6
+
+        # Create a button for each game
         for i, game in enumerate(self.games):
-            rect = pygame.Rect(40, start_y + i * 30, 200, 28)
-            if rect.collidepoint(mx, my):
-                self.launch_game(game)
-                return
-        if pygame.Rect(40, start_y + len(self.games) * 30, 100, 28).collidepoint(mx, my):
-            self.quit_game()
+            name = f"game_btn_{i}"
+            cfg = {
+                "type": "UIButton",
+                "text": game,
+                "x": 40,
+                "y": start_y + i * (btn_h + gap),
+                "w": btn_w,
+                "h": btn_h,
+                "font": pygame.font.SysFont(None, 22),
+                "bg_color": (60, 60, 60),
+                "text_color": self.text_color,
+                "callback": self._make_launch_callback(game),
+            }
+            self.ui.create_element(name, "UIButton", **cfg)
+
+        # Quit button placed after game list
+        quit_y = start_y + len(self.games) * (btn_h + gap)
+        quit_cfg = {
+            "type": "UIButton",
+            "text": "Quit",
+            "x": 40,
+            "y": quit_y,
+            "w": btn_w,
+            "h": btn_h,
+            "font": pygame.font.SysFont(None, 22),
+            "bg_color": (60, 60, 60),
+            "text_color": self.text_color,
+            "callback": self.quit_game,
+        }
+        self.ui.create_element("quit_btn", "UIButton", **quit_cfg)
+
+        # Ensure initial highlight
+        self._update_highlight()
+
+    def _make_launch_callback(self, game_name):
+        """Return a callback that launches the given game."""
+        def _cb():
+            self.launch_game(game_name)
+        return _cb
+
+    """
+    Selection helpers
+    """
+    def _update_highlight(self):
+        """
+        Update button highlight according to selected_index.
+        selected_index from 0..len(games) => last index is Quit button.
+        """
+        total = len(self.games) + 1
+        self.selected_index %= total
+
+        # clear all highlights
+        for i in range(len(self.games)):
+            btn = self.ui.elements.get(f"game_btn_{i}")
+            if btn:
+                btn.set_highlighted(False)
+
+        # quit button
+        quit_btn = self.ui.elements.get("quit_btn")
+        if quit_btn:
+            quit_btn.set_highlighted(False)
+
+        # set highlight on currently selected
+        if self.selected_index < len(self.games):
+            btn = self.ui.elements.get(f"game_btn_{self.selected_index}")
+            if btn:
+                btn.set_highlighted(True)
+        else:
+            if quit_btn:
+                quit_btn.set_highlighted(True)
 
     def select_up(self):
         self.selected_index = (self.selected_index - 1) % (len(self.games) + 1)
+        self._update_highlight()
 
     def select_down(self):
         self.selected_index = (self.selected_index + 1) % (len(self.games) + 1)
+        self._update_highlight()
 
     def select_confirm(self):
-        if self.selected_index != len(self.games):
-            self.launch_game(self.games[self.selected_index])
+        if self.selected_index < len(self.games):
+            game = self.games[self.selected_index]
+            self.launch_game(game)
         else:
             self.quit_game()
 
@@ -95,23 +199,27 @@ class InitialScene(Scene):
         if not self.debug:
             pygame.display.iconify()
 
-    def handle_events(self, events):
+    """
+    Operations
+        events
+        update
+        render
+    """
+    def events(self, events):
+        """
+        Process components events.
+        """
         pass
 
     def update(self, dt):
-        pass
+        """
+        Update components.
+        """
+        self.ui.update()
 
     def render(self, surface):
+        """
+        Render components.
+        """
         surface.fill(self.bg_color)
-        title_surf = self.font.render("Select a game to launch:", True, self.text_color)
-        surface.blit(title_surf, (20, 10))
-
-        start_y = 50
-        for i, game in enumerate(self.games):
-            color = self.highlight_color if i == self.selected_index else self.text_color
-            text_surf = self.font.render(game, True, color)
-            surface.blit(text_surf, (40, start_y + i * 30))
-
-        quit_color = self.highlight_color if self.selected_index == len(self.games) else self.text_color
-        quit_surf = self.font.render("Quit", True, quit_color)
-        surface.blit(quit_surf, (40, start_y + len(self.games) * 30))
+        self.ui.render(surface)

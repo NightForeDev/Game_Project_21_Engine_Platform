@@ -9,7 +9,7 @@ class Scene:
     def quit_game(self):
         self.game.quit_game()
 
-    def handle_events(self, events):
+    def events(self, events):
         pass
 
     def update(self, dt):

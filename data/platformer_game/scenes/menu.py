@@ -36,7 +36,9 @@ class MenuScene(Scene):
         setup_input
     """
     def setup_input(self):
-        """Configure menu input (navigation, confirm, cancel, exit)."""
+        """
+        Configure key bindings and action mappings.
+        """
         input_config = {
             "bind": [
                 {"key": pygame.K_m, "callback": self.exit_menu},
@@ -69,7 +71,7 @@ class MenuScene(Scene):
         self.waiting_for_key = False
         self.message = "Rebinding cancelled. Use Up/Down to select, Enter to rebind, M to return"
 
-    def handle_events(self, events):
+    def events(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
                 self.assign_key(event)

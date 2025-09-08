@@ -3,17 +3,17 @@
 import random
 import sys
 import pygame
-from engine.config_loader import load_config
+from engine.base_manager import BaseManager
 from engine.debug_manager import DebugManager
 from engine.window_manager import WindowManager
 from engine.input_manager import InputManager
 
-class Core:
+class CoreManager(BaseManager):
     """
     Core engine class responsible for managing the application.
 
     Attributes:
-        Class Attributes:
+        Base Attributes:
             class_name (str): Name of the class.
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
@@ -21,7 +21,6 @@ class Core:
         Time Attributes:
             fps (int): Frames per second target.
             clock (pygame.time.Clock): Clock to track time.
-            dt (float): Delta time for the current frame (seconds).
             total_play_time (float): Total time elapsed (seconds).
 
         Manager Attributes:
@@ -39,23 +38,27 @@ class Core:
 
     Methods:
         Configuration:
-            _setup(run): Initialize and prepare all components.
-            _setup_input(): Configure key bindings and action mappings.
-            setup_initial_engine(): Initialize core engine systems and managers.
-            setup_initial_scene(): Set the initial scene instance.
+            _setup(): Initialize components.
+            load_config(config): Load settings from configuration.
+            setup_input(): Configure key bindings and action mappings.
+            setup_initial_engine(): Initialize systems and managers.
+            setup_initial_scene(): Initialize scene instance.
 
         Scene Management:
             change_scene(scene_class): Switch to a new scene.
             return_scene(): Return to the previous scene.
 
         Runtime:
-            _run(): Executes the main loop.
-            _events(): Process pygame and user events.
+            run(): Executes the main loop.
             quit_game(): Exit the game.
 
+        Debug:
+            debug(): Print debug information.
+
         Operations:
-            update(): Update all components.
-            render(): Render all components.
+            events(events): Process components events.
+            update(dt): Update components.
+            render(surface): Render components.
     """
     def __init__(self, initial_scene_class, app_config=None, run=True):
         """
@@ -66,19 +69,9 @@ class Core:
             app_config (dict, optional): Preloaded application config.
             run (bool): Whether to start the main loop after setup.
         """
-        # Load application configuration if not provided
-        if app_config is None:
-            app_config = load_config()
-
-        # Class Attributes
-        self.class_name = self.__class__.__name__
-        self.app_config = app_config
-        self.config = self.app_config[self.class_name]
-
         # Time Attributes
         self.fps = None
         self.clock = None
-        self.dt = None
         self.total_play_time = None
 
         # Manager Attributes
@@ -94,31 +87,43 @@ class Core:
         self.current_scene = None
         self.previous_scene = None
 
-        # Initialize all components
-        self._setup(run)
+        # Initialize BaseManager
+        super().__init__(app_config)
+
+        # Start the main loop
+        if run:
+            self.run()
 
     """
     Configuration
         _setup
-        _setup_input
+        load_config
+        setup_input
         setup_initial_engine
         setup_initial_scene
     """
-    def _setup(self, run):
+    def _setup(self):
         """
-        Initialize and prepare all components.
+        Initialize components.
+        """
+        # Load configuration
+        self.load_config(self.config)
 
-        Args:
-            run (bool): Whether to start the main loop after setup.
-        """
         # Initialize components
         self.setup_initial_engine()
 
-        # Start process
-        if run:
-            self._run()
+    def load_config(self, config):
+        """
+        Load settings from configuration.
+        """
+        # Early return if action is not applicable
+        if config is None:
+            return
 
-    def _setup_input(self):
+        # Apply configuration values
+        self.fps = self.config["fps"]
+
+    def setup_input(self):
         """
         Configure key bindings and action mappings.
         """
@@ -141,7 +146,7 @@ class Core:
 
     def setup_initial_engine(self):
         """
-        Initialize core engine systems and managers.
+        Initialize systems and managers.
         """
         # Initialize pygame and random seed
         pygame.mixer.pre_init(44100, -16, 2, 2048)
@@ -150,9 +155,7 @@ class Core:
         random.seed()
 
         # Time Attributes
-        self.fps = self.config["fps"]
         self.clock = pygame.time.Clock()
-        self.dt = self.clock.tick(self.fps) / 1000
         self.total_play_time = 0
 
         # Manager Attributes
@@ -165,11 +168,11 @@ class Core:
 
         # Prepare remaining components
         self.setup_initial_scene()
-        self._setup_input()
+        self.setup_input()
 
     def setup_initial_scene(self):
         """
-        Set the initial scene instance.
+        Initialize scene instance.
         """
         self.previous_scene = None
         self.current_scene = self.initial_scene_class(self)
@@ -194,29 +197,60 @@ class Core:
 
     """
     Runtime
-        _run
-        _events
+        run
         quit_game
     """
-    def _run(self):
+    def run(self):
         """
         Executes the main loop.
         """
         while self.running:
             # Update time (seconds)
-            self.dt = self.clock.tick(self.fps) / 1000
-            self.total_play_time += self.dt
+            dt = self.clock.tick(self.fps) / 1000
+            self.total_play_time += dt
+
+            # Gather frame events
+            events = pygame.event.get()
+
+            surface = self.window_manager.render_surface
 
             # Handle logic
-            self._events()
-            self.update()
-            self.render()
+            self.events(events)
+            self.update(dt)
+            self.render(surface)
 
-    def _events(self):
+    def quit_game(self):
         """
-        Process pygame and user events.
+        Exit the game.
         """
-        events = pygame.event.get()
+        self.running = False
+        self.debug()
+        pygame.quit()
+        sys.exit()
+
+    """
+    Debug
+        debug
+    """
+    def debug(self):
+        """
+        Print debug information.
+        """
+        print(f"{self.class_name}")
+        print(f"running={self.running}")
+        print(f"fps={self.fps}")
+        print(f"total_play_time={self.total_play_time:.2f}")
+
+    """
+    Operations
+        events
+        update
+        render
+    """
+    def events(self, events):
+        """
+        Process components events.
+        """
         for event in events:
             # Pygame events
             if event.type == pygame.VIDEORESIZE:
@@ -228,33 +262,20 @@ class Core:
             self.input_manager.handle_event(event)
 
         # Scene-level events
-        self.current_scene.handle_events(events)
+        self.current_scene.events(events)
 
-    def quit_game(self):
+    def update(self, dt):
         """
-        Exit the game.
-        """
-        self.running = False
-        pygame.quit()
-        sys.exit()
-
-    """
-    Operations
-        update
-        render
-    """
-    def update(self):
-        """
-        Update all components.
+        Update components.
         """
         self.window_manager.update()
-        self.current_scene.update(self.dt)
+        self.current_scene.update(dt)
         self.debug_manager.update()
 
-    def render(self):
+    def render(self, surface):
         """
-        Render all components.
+        Render components.
         """
-        self.current_scene.render(self.window_manager.render_surface)
-        self.debug_manager.draw(self.window_manager.render_surface)
+        self.current_scene.render(surface)
+        self.debug_manager.draw(surface)
         self.window_manager.render()
