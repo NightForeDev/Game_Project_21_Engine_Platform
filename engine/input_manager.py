@@ -1,13 +1,14 @@
 # engine/input_manager.py
 
 import pygame
+from engine.base_manager import BaseManager
 
-class InputManager:
+class InputManager(BaseManager):
     """
-    Manages input including state tracking, action mapping, and local/global callback handling.
+    Manage input including state tracking, action mapping, and local/global callback handling.
 
     Attributes:
-        Class Attributes:
+        Base Attributes:
             class_name (str): Name of the class.
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
@@ -34,10 +35,11 @@ class InputManager:
 
     Methods:
         Configuration:
-            _setup(): Initialize and prepare all components.
-            load_config(config): Load settings from configuration and initialize attributes.
+            _setup(): Initialize components.
+            load_config(config): Load settings from configuration.
 
-        Callback Management:
+        Input Utilities:
+            is_action_active(action): Check if an action is currently active (held).
             clear_local_callbacks(): Remove all local callbacks.
             clear_all_callbacks(): Remove all callbacks.
 
@@ -51,19 +53,13 @@ class InputManager:
             map_action_to_key(key, action): Map an action to a keyboard key.
             map_action_to_mouse(button, action): Map an action to a mouse button.
 
-        Event Handling:
-            handle_event(event): Handle pygame events to update states and trigger callbacks.
-            is_action_active(action): Check if an action is currently active (held).
-
         Debug:
-            debug(): Print the current internal state for debugging purposes.
+            debug(): Print debug information.
+
+        Operations:
+            events(events): Process components events.
     """
     def __init__(self, app_config=None):
-        # Class Attributes
-        self.class_name = self.__class__.__name__
-        self.app_config = app_config
-        self.config = self.app_config[self.class_name]
-
         # State Attributes
         self.key_state = {}
         self.mouse_state = {}
@@ -84,8 +80,8 @@ class InputManager:
         self.action_to_key = {}
         self.action_to_mouse = {}
 
-        # Initialize all components
-        self._setup()
+        # Initialize BaseManager and components
+        super().__init__(app_config)
 
     """
     Configuration
@@ -130,10 +126,30 @@ class InputManager:
                 self.bind_mouse_down(button, callback, global_=global_)
 
     """
-    Callback Management
+    Input Utilities
+        is_action_active
         clear_local_callbacks
         clear_all_callbacks
     """
+    def is_action_active(self, action):
+        """
+        Check if an action is currently active (held).
+
+        Returns True if the key or mouse button mapped to the action is currently held.
+        """
+        # Check mapped key
+        key = self.action_to_key.get(action)
+        if key and self.key_state.get(key, False):
+            return True
+
+        # Check mapped mouse button
+        button = self.action_to_mouse.get(action)
+        if button and self.mouse_state.get(button, False):
+            return True
+
+        # Not active
+        return False
+
     def clear_local_callbacks(self):
         """
         Remove all local callbacks.
@@ -214,13 +230,35 @@ class InputManager:
         self.action_to_mouse[action] = mouse
 
     """
-    Event handling
-        handle_event
-        is_action_active
+    Debug
+        debug
     """
-    def handle_event(self, event):
+    def debug(self):
         """
-        Handle pygame events to update states and trigger callbacks.
+        Print debug information.
+        """
+        print(f"{self.class_name}")
+        print("Held Keys:", self.key_state)
+        print("Held Mouse Buttons:", self.mouse_state)
+        print("Action to Key:", self.action_to_key)
+        print("Action to Mouse:", self.action_to_mouse)
+        print("Local Key Down Callbacks:", list(self.local_key_down_callbacks.keys()))
+        print("Local Key Up Callbacks:", list(self.local_key_up_callbacks.keys()))
+        print("Local Mouse Down Callbacks:", list(self.local_mouse_down_callbacks.keys()))
+        print("Local Mouse Up Callbacks:", list(self.local_mouse_up_callbacks.keys()))
+        print("Global Key Down Callbacks:", list(self.global_key_down_callbacks.keys()))
+        print("Global Key Up Callbacks:", list(self.global_key_up_callbacks.keys()))
+        print("Global Mouse Down Callbacks:", list(self.global_mouse_down_callbacks.keys()))
+        print("Global Mouse Up Callbacks:", list(self.global_mouse_up_callbacks.keys()))
+        print()
+
+    """
+    Operations
+        events
+    """
+    def events(self, event):
+        """
+        Process components events.
         """
         # Key pressed
         if event.type == pygame.KEYDOWN:
@@ -253,44 +291,3 @@ class InputManager:
                 self.local_mouse_up_callbacks[event.button]()
             elif event.button in self.global_mouse_up_callbacks:
                 self.global_mouse_up_callbacks[event.button]()
-
-    def is_action_active(self, action):
-        """
-        Check if an action is currently active (held).
-
-        Returns True if the key or mouse button mapped to the action is currently held.
-        """
-        # Check mapped key
-        key = self.action_to_key.get(action)
-        if key and self.key_state.get(key, False):
-            return True
-
-        # Check mapped mouse button
-        button = self.action_to_mouse.get(action)
-        if button and self.mouse_state.get(button, False):
-            return True
-
-        # Not active
-        return False
-
-    """
-    Debug
-        debug
-    """
-    def debug(self):
-        """
-        Print the current internal state for debugging purposes.
-        """
-        print("Held Keys:", self.key_state)
-        print("Held Mouse Buttons:", self.mouse_state)
-        print("Action to Key:", self.action_to_key)
-        print("Action to Mouse:", self.action_to_mouse)
-        print("Local Key Down Callbacks:", list(self.local_key_down_callbacks.keys()))
-        print("Local Key Up Callbacks:", list(self.local_key_up_callbacks.keys()))
-        print("Local Mouse Down Callbacks:", list(self.local_mouse_down_callbacks.keys()))
-        print("Local Mouse Up Callbacks:", list(self.local_mouse_up_callbacks.keys()))
-        print("Global Key Down Callbacks:", list(self.global_key_down_callbacks.keys()))
-        print("Global Key Up Callbacks:", list(self.global_key_up_callbacks.keys()))
-        print("Global Mouse Down Callbacks:", list(self.global_mouse_down_callbacks.keys()))
-        print("Global Mouse Up Callbacks:", list(self.global_mouse_up_callbacks.keys()))
-        print()

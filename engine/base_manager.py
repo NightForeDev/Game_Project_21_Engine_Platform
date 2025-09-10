@@ -8,7 +8,7 @@ class BaseManager(ABC):
     Abstract base class for managers.
 
     Attributes:
-        Class Attributes:
+        Base Attributes:
             class_name (str): Name of the class.
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
@@ -83,17 +83,20 @@ class BaseManager(ABC):
         update
         render
     """
-    @abstractmethod
     def events(self, events):
-        """Process components events."""
+        """
+        Process components events.
+        """
         pass
 
-    @abstractmethod
-    def update(self, dt):
-        """Update components."""
+    def update(self, dt=None):
+        """
+        Update components.
+        """
         pass
 
-    @abstractmethod
-    def render(self, surface):
-        """Render components."""
+    def render(self, surface=None):
+        """
+        Render components.
+        """
         pass

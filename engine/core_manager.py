@@ -10,7 +10,7 @@ from engine.input_manager import InputManager
 
 class CoreManager(BaseManager):
     """
-    Core engine class responsible for managing the application.
+    Manage the application.
 
     Attributes:
         Base Attributes:
@@ -87,7 +87,7 @@ class CoreManager(BaseManager):
         self.current_scene = None
         self.previous_scene = None
 
-        # Initialize BaseManager
+        # Initialize BaseManager and components
         super().__init__(app_config)
 
         # Start the main loop
@@ -240,6 +240,7 @@ class CoreManager(BaseManager):
         print(f"running={self.running}")
         print(f"fps={self.fps}")
         print(f"total_play_time={self.total_play_time:.2f}")
+        print()
 
     """
     Operations
@@ -259,12 +260,12 @@ class CoreManager(BaseManager):
                 self.quit_game()
 
             # Input events
-            self.input_manager.handle_event(event)
+            self.input_manager.events(event)
 
         # Scene-level events
         self.current_scene.events(events)
 
-    def update(self, dt):
+    def update(self, dt=None):
         """
         Update components.
         """
@@ -272,7 +273,7 @@ class CoreManager(BaseManager):
         self.current_scene.update(dt)
         self.debug_manager.update()
 
-    def render(self, surface):
+    def render(self, surface=None):
         """
         Render components.
         """
