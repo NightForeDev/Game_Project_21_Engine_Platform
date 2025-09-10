@@ -7,13 +7,20 @@ from engine.ui_label import UILabel
 
 class UIManager(BaseManager):
     """
-    Manage all UI elements including creation, configuration, state handling and rendering.
+    Manage interface elements.
 
     Attributes:
         Base Attributes:
             class_name (str): Name of the class.
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
+
+        Manager Attributes:
+            core_manager (CoreManager): Manage application.
+            debug_manager (DebugManager): Manage debug overlay and diagnostics.
+            input_manager (InputManager): Manage input state and callbacks.
+            ui_manager (UIManager): Manage interface elements.
+            window_manager (WindowManager): Manage window and rendering surface.
 
         UI Attributes:
             elements (dict[str, UIElement]): Dictionary of UI elements by name.
@@ -36,7 +43,6 @@ class UIManager(BaseManager):
             update(dt): Update components.
             render(surface): Render components.
     """
-
     def __init__(self, app_config=None):
         # UI Attributes
         self.elements = {}
@@ -54,21 +60,13 @@ class UIManager(BaseManager):
     """
     def _setup(self):
         """
-        Initialize and prepare all components.
+        Initialize components.
         """
         self.load_config(self.config)
 
     def load_config(self, config):
         """
-        Load settings from configuration and initialize attributes.
-
-        Config example:
-            {
-                "elements": {
-                    "title": {"type": "UILabel", "text": "Hello", "x": 10, "y": 10},
-                    "start_btn": {"type": "UIButton", "text": "Start", "x": 20, "y": 60}
-                }
-            }
+        Load settings from configuration.
         """
         if not config:
             return
@@ -118,7 +116,7 @@ class UIManager(BaseManager):
     """
     def update(self, dt=None):
         """
-        Update all components.
+        Update components.
         """
         if not self.active:
             return
@@ -128,7 +126,7 @@ class UIManager(BaseManager):
 
     def render(self, surface=None):
         """
-        Render all components.
+        Render components.
         """
         if not self.active:
             return

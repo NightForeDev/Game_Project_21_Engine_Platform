@@ -5,13 +5,20 @@ from engine.base_manager import BaseManager
 
 class InputManager(BaseManager):
     """
-    Manage input including state tracking, action mapping, and local/global callback handling.
+    Manage input state and callbacks.
 
     Attributes:
         Base Attributes:
             class_name (str): Name of the class.
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
+
+        Manager Attributes:
+            core_manager (CoreManager): Manage application.
+            debug_manager (DebugManager): Manage debug overlay and diagnostics.
+            input_manager (InputManager): Manage input state and callbacks.
+            ui_manager (UIManager): Manage interface elements.
+            window_manager (WindowManager): Manage window and rendering surface.
 
         State Attributes:
             key_state (dict[int, bool]): Current pressed state of keyboard keys.
@@ -90,14 +97,14 @@ class InputManager(BaseManager):
     """
     def _setup(self):
         """
-        Initialize and prepare all components.
+        Initialize components.
         """
         # Load configuration
         self.load_config(self.config)
 
     def load_config(self, config):
         """
-        Load settings from configuration and initialize attributes.
+        Load settings from configuration.
         """
         # Early return if action is not applicable
         if config is None:

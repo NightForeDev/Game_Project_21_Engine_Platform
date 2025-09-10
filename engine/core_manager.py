@@ -5,12 +5,13 @@ import sys
 import pygame
 from engine.base_manager import BaseManager
 from engine.debug_manager import DebugManager
-from engine.window_manager import WindowManager
 from engine.input_manager import InputManager
+from engine.ui_manager import UIManager
+from engine.window_manager import WindowManager
 
 class CoreManager(BaseManager):
     """
-    Manage the application.
+    Manage application.
 
     Attributes:
         Base Attributes:
@@ -18,15 +19,17 @@ class CoreManager(BaseManager):
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
 
+        Manager Attributes:
+            core_manager (CoreManager): Manage application.
+            debug_manager (DebugManager): Manage debug overlay and diagnostics.
+            input_manager (InputManager): Manage input state and callbacks.
+            ui_manager (UIManager): Manage interface elements.
+            window_manager (WindowManager): Manage window and rendering surface.
+
         Time Attributes:
             fps (int): Frames per second target.
             clock (pygame.time.Clock): Clock to track time.
             total_play_time (float): Total time elapsed (seconds).
-
-        Manager Attributes:
-            debug_manager (DebugManager): Debug utility for overlay and diagnostics.
-            window_manager (WindowManager): Handles window and rendering surface.
-            input_manager (InputManager): Handles input state and callbacks.
 
         State Attributes:
             running (bool): Controls whether the main loop is active.
@@ -69,15 +72,16 @@ class CoreManager(BaseManager):
             app_config (dict, optional): Preloaded application config.
             run (bool): Whether to start the main loop after setup.
         """
+        # Manager Attributes
+        self.debug_manager = None
+        self.input_manager = None
+        self.ui_manager = None
+        self.window_manager = None
+
         # Time Attributes
         self.fps = None
         self.clock = None
         self.total_play_time = None
-
-        # Manager Attributes
-        self.debug_manager = None
-        self.window_manager = None
-        self.input_manager = None
 
         # State Attributes
         self.running = None
@@ -135,9 +139,10 @@ class CoreManager(BaseManager):
                 {"key": pygame.K_F4, "callback": self.window_manager.toggle_maximized, "global": True},
                 {"key": pygame.K_F5, "callback": self.setup_initial_engine, "global": True},
                 {"key": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
-                {"key": pygame.K_F10, "callback": self.input_manager.debug, "global": True},
                 {"key": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
                 {"key": pygame.K_F12, "callback": self.setup_initial_scene, "global": True},
+
+                {"key": pygame.K_F10, "callback": self.input_manager.debug, "global": True},
             ],
             "map": {
             }
@@ -160,8 +165,9 @@ class CoreManager(BaseManager):
 
         # Manager Attributes
         self.debug_manager = DebugManager(self)
-        self.window_manager = WindowManager(self.app_config, self.clock)
         self.input_manager = InputManager(self.app_config)
+        self.ui_manager = UIManager(self.app_config)
+        self.window_manager = WindowManager(self.app_config, self.clock)
 
         # State Attributes
         self.running = True

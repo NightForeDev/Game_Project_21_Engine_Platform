@@ -11,13 +11,20 @@ SW_RESTORE = 9
 
 class WindowManager(BaseManager):
     """
-    Manage Pygame window creation, configuration, resizing, and display state.
+    Manage window and rendering surface.
 
     Attributes:
         Base Attributes:
             class_name (str): Name of the class.
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
+
+        Manager Attributes:
+            core_manager (CoreManager): Manage application.
+            debug_manager (DebugManager): Manage debug overlay and diagnostics.
+            input_manager (InputManager): Manage input state and callbacks.
+            ui_manager (UIManager): Manage interface elements.
+            window_manager (WindowManager): Manage window and rendering surface.
 
         Time Attributes:
             clock (pygame.time.Clock): Optional clock for FPS display.

@@ -13,6 +13,13 @@ class BaseManager(ABC):
             app_config (dict): Full application configuration.
             config (dict): Configuration specific to the class.
 
+        Manager Attributes:
+            core_manager (CoreManager): Manage application.
+            debug_manager (DebugManager): Manage debug overlay and diagnostics.
+            input_manager (InputManager): Manage input state and callbacks.
+            ui_manager (UIManager): Manage interface elements.
+            window_manager (WindowManager): Manage window and rendering surface.
+
     Methods:
         Configuration:
             _setup(): Initialize components.
@@ -26,7 +33,7 @@ class BaseManager(ABC):
             update(dt): Update components.
             render(surface): Render components.
     """
-    def __init__(self, app_config=None):
+    def __init__(self, app_config=None, core_manager=None):
         # Load application configuration if not provided
         if app_config is None:
             app_config = load_config()
@@ -35,6 +42,13 @@ class BaseManager(ABC):
         self.class_name = self.__class__.__name__
         self.app_config = app_config if app_config else {}
         self.config = self.app_config.get(self.class_name, {})
+
+        # Manager Attributes
+        self.core_manager = core_manager
+        self.debug_manager = getattr(core_manager, "debug_manager", None)
+        self.input_manager = getattr(core_manager, "input_manager", None)
+        self.ui_manager = getattr(core_manager, "ui_manager", None)
+        self.window_manager = getattr(core_manager, "window_manager", None)
 
         # Initialize
         self._setup()
