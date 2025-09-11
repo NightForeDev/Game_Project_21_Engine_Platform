@@ -1,9 +1,9 @@
 # data\platformer_game\scenes\menu.py
 
 import pygame
-from engine.scene import Scene
+from engine.base_scene import BaseScene
 
-class MenuScene(Scene):
+class MenuScene(BaseScene):
     BASE_FONT_SIZE_RATIO = 0.05  # 5% of screen height for font size
     PADDING_RATIO = 0.03         # 3% of screen width for padding
     ACTIONS = ['move_left', 'move_right', 'jump']
@@ -93,7 +93,7 @@ class MenuScene(Scene):
         self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
         self.waiting_for_key = False
 
-    def update(self, dt):
+    def update(self, dt=None):
         if self.waiting_for_key:
             self.blink_timer += dt
             if self.blink_timer >= 0.5:
@@ -102,7 +102,7 @@ class MenuScene(Scene):
         else:
             self.blink_visible = True
 
-    def render(self, surface):
+    def render(self, surface=None):
         surface.fill((20, 20, 20))
 
         # Draw the message (always visible, no blinking)

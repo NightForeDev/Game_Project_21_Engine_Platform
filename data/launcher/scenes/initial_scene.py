@@ -6,13 +6,13 @@ import subprocess
 import pygame
 
 from data.shared.constants import SHARED_FOLDER, DATA_FOLDER
-from engine.scene import Scene
+from engine.base_scene import BaseScene
 from engine.ui_manager import UIManager
 
 CURRENT_FOLDER = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 IGNORE_FOLDERS = {CURRENT_FOLDER, SHARED_FOLDER}
 
-class InitialScene(Scene):
+class InitialScene(BaseScene):
     def __init__(self, core, debug=False):
         super().__init__(core)
 
@@ -211,13 +211,13 @@ class InitialScene(Scene):
         """
         pass
 
-    def update(self, dt):
+    def update(self, dt=None):
         """
         Update components.
         """
         self.ui.update()
 
-    def render(self, surface):
+    def render(self, surface=None):
         """
         Render components.
         """

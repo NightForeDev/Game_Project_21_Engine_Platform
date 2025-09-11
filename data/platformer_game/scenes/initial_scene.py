@@ -1,11 +1,11 @@
 # data\platformer_game\scenes\initial_scene.py
 
 import pygame
-from engine.scene import Scene
+from engine.base_scene import BaseScene
 from data.platformer_game.entities.player import Player
 from data.platformer_game.scenes.menu import MenuScene
 
-class InitialScene(Scene):
+class InitialScene(BaseScene):
     def __init__(self, core):
         super().__init__(core)
         self.player = Player(100, 300)
@@ -42,7 +42,7 @@ class InitialScene(Scene):
     def events(self, events):
         pass
 
-    def update(self, dt):
+    def update(self, dt=None):
         # Instead of raw keys, query actions:
         move_left = self.input_manager.is_action_active('move_left')
         move_right = self.input_manager.is_action_active('move_right')
@@ -50,7 +50,7 @@ class InitialScene(Scene):
 
         self.player.update(dt, move_left, move_right, jump, self.ground_y)
 
-    def render(self, surface):
+    def render(self, surface=None):
         surface.fill((135, 206, 235))  # Sky blue background
 
         # Draw ground platform
