@@ -37,20 +37,33 @@ class InitialScene(BaseScene):
         self.input_manager.load_config(input_config)
 
     def open_menu(self):
-        self.game.change_scene(MenuScene)
+        self.core_manager.change_scene(MenuScene)
 
+    """
+    Operations
+        events
+        update
+        render
+    """
     def events(self, events):
+        """
+        Process components events.
+        """
         pass
 
     def update(self, dt=None):
-        # Instead of raw keys, query actions:
+        """
+        Update components.
+        """
         move_left = self.input_manager.is_action_active('move_left')
         move_right = self.input_manager.is_action_active('move_right')
         jump = self.input_manager.is_action_active('jump')
-
         self.player.update(dt, move_left, move_right, jump, self.ground_y)
 
     def render(self, surface=None):
+        """
+        Render components.
+        """
         surface.fill((135, 206, 235))  # Sky blue background
 
         # Draw ground platform

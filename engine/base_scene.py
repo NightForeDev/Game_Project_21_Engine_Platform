@@ -1,4 +1,5 @@
 # engine\base_scene.py
+
 from abc import ABC, abstractmethod
 
 class BaseScene(ABC):
@@ -23,7 +24,6 @@ class BaseScene(ABC):
             update(dt): Update components.
             render(surface): Render components.
     """
-
     def __init__(self, core_manager):
         # Manager Attributes
         self.core_manager = core_manager
@@ -31,10 +31,6 @@ class BaseScene(ABC):
         self.input_manager = core_manager.input_manager
         self.ui_manager = core_manager.ui_manager
         self.window_manager = core_manager.window_manager
-
-        # WIP
-        self.game = self.core_manager
-
 
     """
     Scene Management
@@ -52,12 +48,6 @@ class BaseScene(ABC):
         Return to the previous scene.
         """
         self.core_manager.return_scene()
-
-    """
-    WIP
-    """
-    def quit_game(self):
-        self.game.quit_game()
 
     """
     Operations

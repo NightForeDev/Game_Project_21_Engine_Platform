@@ -51,7 +51,7 @@ class MenuScene(BaseScene):
         self.input_manager.load_config(input_config)
 
     def exit_menu(self):
-        self.game.return_scene()
+        self.core_manager.return_scene()
 
     def select_up(self):
         if not self.waiting_for_key:
@@ -71,11 +71,6 @@ class MenuScene(BaseScene):
         self.waiting_for_key = False
         self.message = "Rebinding cancelled. Use Up/Down to select, Enter to rebind, M to return"
 
-    def events(self, events):
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                self.assign_key(event)
-
     def assign_key(self, event):
         if not self.waiting_for_key:
             return
@@ -93,7 +88,24 @@ class MenuScene(BaseScene):
         self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
         self.waiting_for_key = False
 
+    """
+    Operations
+        events
+        update
+        render
+    """
+    def events(self, events):
+        """
+        Process components events.
+        """
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                self.assign_key(event)
+
     def update(self, dt=None):
+        """
+        Update components.
+        """
         if self.waiting_for_key:
             self.blink_timer += dt
             if self.blink_timer >= 0.5:
@@ -103,6 +115,9 @@ class MenuScene(BaseScene):
             self.blink_visible = True
 
     def render(self, surface=None):
+        """
+        Render components.
+        """
         surface.fill((20, 20, 20))
 
         # Draw the message (always visible, no blinking)

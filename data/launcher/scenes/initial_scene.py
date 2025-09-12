@@ -121,7 +121,7 @@ class InitialScene(BaseScene):
             "font": pygame.font.SysFont(None, 22),
             "bg_color": (60, 60, 60),
             "text_color": self.text_color,
-            "callback": self.quit_game,
+            "callback": self.core_manager.quit_game,
         }
         self.ui.create_element("quit_btn", "UIButton", **quit_cfg)
 
@@ -178,7 +178,7 @@ class InitialScene(BaseScene):
             game = self.games[self.selected_index]
             self.launch_game(game)
         else:
-            self.quit_game()
+            self.core_manager.quit_game()
 
     def launch_game(self, game_name):
         if not self.debug and self.launched_games:
