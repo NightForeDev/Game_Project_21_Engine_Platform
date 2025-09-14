@@ -14,18 +14,6 @@ class WindowManager(BaseManager):
     Manage window and rendering surface.
 
     Attributes:
-        Base Attributes:
-            class_name (str): Name of the class.
-            app_config (dict): Full application configuration.
-            config (dict): Configuration specific to the class.
-
-        Manager Attributes:
-            core_manager (CoreManager): Manage application.
-            debug_manager (DebugManager): Manage debug overlay and diagnostics.
-            input_manager (InputManager): Manage input state and callbacks.
-            ui_manager (UIManager): Manage interface elements.
-            window_manager (WindowManager): Manage window and rendering surface.
-
         Time Attributes:
             clock (pygame.time.Clock): Optional clock for FPS display.
 
@@ -89,7 +77,7 @@ class WindowManager(BaseManager):
             update(dt): Update components.
             render(surface): Render components.
     """
-    def __init__(self, app_config=None, clock=None):
+    def __init__(self, core_manager=None, app_config=None, clock=None):
         # Time Attributes
         self.clock = clock
 
@@ -119,7 +107,7 @@ class WindowManager(BaseManager):
         self.display_gap = None
 
         # Initialize BaseManager and components
-        super().__init__(app_config)
+        super().__init__(core_manager, app_config)
 
     """
     Configuration

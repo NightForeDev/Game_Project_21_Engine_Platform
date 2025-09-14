@@ -4,21 +4,9 @@ from engine.base_manager import BaseManager
 
 class SceneManager(BaseManager):
     """
-    Manage active scenes in the application.
+    Manage active scenes.
 
     Attributes:
-        Base Attributes:
-            class_name (str): Name of the class.
-            app_config (dict): Full application configuration.
-            config (dict): Configuration specific to the class.
-
-        Manager Attributes:
-            core_manager (CoreManager): Manage application.
-            debug_manager (DebugManager): Manage debug overlay and diagnostics.
-            input_manager (InputManager): Manage input state and callbacks.
-            ui_manager (UIManager): Manage interface elements.
-            window_manager (WindowManager): Manage window and rendering surface.
-
         State Attributes:
             scenes (list): Stack of active scenes.
             current_scene (BaseScene): Scene currently in focus.
@@ -34,7 +22,8 @@ class SceneManager(BaseManager):
             load_config(config): Load settings from configuration.
 
         Scene Management:
-            push_scene(scene): Push a new scene on top of the stack.
+            set_scene(BaseScene): Set a new scene.
+            push_scene(BaseScene): Push a new scene on top of the stack.
             pop_scene(): Pop the current scene off the stack.
             clear_scenes(): Remove all scenes.
 
@@ -46,14 +35,14 @@ class SceneManager(BaseManager):
             update(dt): Update components.
             render(surface): Render components.
     """
-    def __init__(self, app_config=None, core_manager=None):
+    def __init__(self, core_manager=None, app_config=None):
         # State Attributes
         self.scenes = []
         self.previous_scene = None
         self.current_scene = None
 
         # Initialize BaseManager and components
-        super().__init__(app_config, core_manager)
+        super().__init__(core_manager, app_config)
 
     """
     Configuration
@@ -81,10 +70,19 @@ class SceneManager(BaseManager):
 
     """
     Scene Management
+        set_scene
         push_scene
         pop_scene
         clear_scenes
     """
+    def set_scene(self, scene_class):
+        """
+        Set a new scene.
+        """
+        self.previous_scene = self.current_scene
+        self.current_scene = scene_class(self.core_manager)
+        self.scenes = [self.current_scene]
+
     def push_scene(self, scene_class):
         """
         Push a new scene onto the stack.

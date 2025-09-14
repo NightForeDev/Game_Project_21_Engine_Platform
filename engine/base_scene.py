@@ -8,9 +8,10 @@ class BaseScene(ABC):
 
     Attributes:
         Manager Attributes:
-            core_manager (CoreManager): Reference to the core application manager.
-            debug_manager (DebugManager): Debug utility for overlay and diagnostics.
+            core_manager (CoreManager): Manage application.
+            debug_manager (DebugManager): Manage debug overlay and diagnostics.
             input_manager (InputManager): Manage input state and callbacks.
+            scene_manager (SceneManager): Manage active scenes.
             ui_manager (UIManager): Manage interface elements.
             window_manager (WindowManager): Manage window and rendering surface.
 
@@ -26,28 +27,13 @@ class BaseScene(ABC):
     """
     def __init__(self, core_manager):
         # Manager Attributes
-        self.core_manager = core_manager
-        self.debug_manager = core_manager.debug_manager
-        self.input_manager = core_manager.input_manager
-        self.ui_manager = core_manager.ui_manager
-        self.window_manager = core_manager.window_manager
-
-    """
-    Scene Management
-        change_scene
-        return_scene
-    """
-    def change_scene(self, scene_class):
-        """
-        Switch to a new scene.
-        """
-        self.core_manager.change_scene(scene_class)
-
-    def return_scene(self):
-        """
-        Return to the previous scene.
-        """
-        self.core_manager.return_scene()
+        if core_manager:
+            self.core_manager = core_manager
+            self.debug_manager = core_manager.debug_manager
+            self.input_manager = core_manager.input_manager
+            self.scene_manager = core_manager.scene_manager
+            self.ui_manager = core_manager.ui_manager
+            self.window_manager = core_manager.window_manager
 
     """
     Operations

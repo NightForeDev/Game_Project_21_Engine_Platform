@@ -8,18 +8,6 @@ class InputManager(BaseManager):
     Manage input state and callbacks.
 
     Attributes:
-        Base Attributes:
-            class_name (str): Name of the class.
-            app_config (dict): Full application configuration.
-            config (dict): Configuration specific to the class.
-
-        Manager Attributes:
-            core_manager (CoreManager): Manage application.
-            debug_manager (DebugManager): Manage debug overlay and diagnostics.
-            input_manager (InputManager): Manage input state and callbacks.
-            ui_manager (UIManager): Manage interface elements.
-            window_manager (WindowManager): Manage window and rendering surface.
-
         State Attributes:
             key_state (dict[int, bool]): Current pressed state of keyboard keys.
             mouse_state (dict[int, bool]): Current pressed state of mouse buttons.
@@ -66,7 +54,7 @@ class InputManager(BaseManager):
         Operations:
             events(events): Process components events.
     """
-    def __init__(self, app_config=None):
+    def __init__(self, core_manager=None, app_config=None):
         # State Attributes
         self.key_state = {}
         self.mouse_state = {}
@@ -88,7 +76,7 @@ class InputManager(BaseManager):
         self.action_to_mouse = {}
 
         # Initialize BaseManager and components
-        super().__init__(app_config)
+        super().__init__(core_manager, app_config)
 
     """
     Configuration

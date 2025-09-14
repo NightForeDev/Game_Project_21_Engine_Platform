@@ -6,6 +6,7 @@ import pygame
 from engine.base_manager import BaseManager
 from engine.debug_manager import DebugManager
 from engine.input_manager import InputManager
+from engine.scene_manager import SceneManager
 from engine.ui_manager import UIManager
 from engine.window_manager import WindowManager
 
@@ -23,6 +24,7 @@ class CoreManager(BaseManager):
             core_manager (CoreManager): Manage application.
             debug_manager (DebugManager): Manage debug overlay and diagnostics.
             input_manager (InputManager): Manage input state and callbacks.
+            scene_manager (SceneManager): Manage active scenes.
             ui_manager (UIManager): Manage interface elements.
             window_manager (WindowManager): Manage window and rendering surface.
 
@@ -36,8 +38,6 @@ class CoreManager(BaseManager):
 
         Scene Attributes:
             initial_scene_class (type): Class reference to the initial scene.
-            current_scene (Scene): Currently active scene instance.
-            previous_scene (Scene): Previously active scene instance.
 
     Methods:
         Configuration:
@@ -46,10 +46,6 @@ class CoreManager(BaseManager):
             setup_input(): Configure key bindings and action mappings.
             setup_initial_engine(): Initialize systems and managers.
             setup_initial_scene(): Initialize scene instance.
-
-        Scene Management:
-            change_scene(scene_class): Switch to a new scene.
-            return_scene(): Return to the previous scene.
 
         Runtime:
             run(): Executes the main loop.
@@ -73,8 +69,10 @@ class CoreManager(BaseManager):
             run (bool): Whether to start the main loop after setup.
         """
         # Manager Attributes
+        self.core_manager = None
         self.debug_manager = None
         self.input_manager = None
+        self.scene_manager = None
         self.ui_manager = None
         self.window_manager = None
 
@@ -88,8 +86,6 @@ class CoreManager(BaseManager):
 
         # Scene Attributes
         self.initial_scene_class = initial_scene_class
-        self.current_scene = None
-        self.previous_scene = None
 
         # Initialize BaseManager and components
         super().__init__(app_config)
@@ -140,7 +136,6 @@ class CoreManager(BaseManager):
                 {"key": pygame.K_F5, "callback": self.setup_initial_engine, "global": True},
                 {"key": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
                 {"key": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
-                {"key": pygame.K_F12, "callback": self.setup_initial_scene, "global": True},
 
                 {"key": pygame.K_F10, "callback": self.input_manager.debug, "global": True},
             ],
@@ -164,42 +159,19 @@ class CoreManager(BaseManager):
         self.total_play_time = 0
 
         # Manager Attributes
-        self.debug_manager = DebugManager(self)
-        self.input_manager = InputManager(self.app_config)
-        self.ui_manager = UIManager(self.app_config)
-        self.window_manager = WindowManager(self.app_config, self.clock)
+        self.core_manager = self
+        self.debug_manager = DebugManager(core_manager=self)
+        self.input_manager = InputManager(core_manager=self, app_config=self.app_config)
+        self.scene_manager = SceneManager(core_manager=self, app_config=self.app_config)
+        self.ui_manager = UIManager(core_manager=self, app_config=self.app_config)
+        self.window_manager = WindowManager(core_manager=self, app_config=self.app_config, clock=self.clock)
 
         # State Attributes
         self.running = True
 
         # Prepare remaining components
-        self.setup_initial_scene()
         self.setup_input()
-
-    def setup_initial_scene(self):
-        """
-        Initialize scene instance.
-        """
-        self.previous_scene = None
-        self.current_scene = self.initial_scene_class(self)
-
-    """
-    Scene Management
-        change_scene
-        return_scene
-    """
-    def change_scene(self, scene_class):
-        """
-        Switch to a new scene.
-        """
-        self.previous_scene = self.current_scene
-        self.current_scene = scene_class(self)
-
-    def return_scene(self):
-        """
-        Return to the previous scene.
-        """
-        self.current_scene = self.previous_scene
+        self.scene_manager.set_scene(self.initial_scene_class)
 
     """
     Runtime
@@ -269,20 +241,20 @@ class CoreManager(BaseManager):
             self.input_manager.events(event)
 
         # Scene-level events
-        self.current_scene.events(events)
+        self.scene_manager.events(events)
 
     def update(self, dt=None):
         """
         Update components.
         """
-        self.window_manager.update()
-        self.current_scene.update(dt)
+        self.scene_manager.update(dt)
         self.debug_manager.update()
+        self.window_manager.update()
 
     def render(self, surface=None):
         """
         Render components.
         """
-        self.current_scene.render(surface)
+        self.scene_manager.render(surface)
         self.debug_manager.draw(surface)
         self.window_manager.render()

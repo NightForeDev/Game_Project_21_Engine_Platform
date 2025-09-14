@@ -6,8 +6,8 @@ import pygame
 from .draw_utils import draw_text
 
 class DebugManager:
-    def __init__(self, core):
-        self.core = core
+    def __init__(self, core_manager):
+        self.core = core_manager
         self.visible = False
         self.fps = 0.0
         self._last_fps_update = time.time()

@@ -51,7 +51,7 @@ class MenuScene(BaseScene):
         self.input_manager.load_config(input_config)
 
     def exit_menu(self):
-        self.core_manager.return_scene()
+        self.scene_manager.return_scene()
 
     def select_up(self):
         if not self.waiting_for_key:
