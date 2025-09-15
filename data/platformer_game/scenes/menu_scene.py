@@ -1,4 +1,4 @@
-# data\platformer_game\scenes\menu.py
+# data\platformer_game\scenes\menu_scene.py
 
 import pygame
 from engine.base_scene import BaseScene
@@ -8,8 +8,8 @@ class MenuScene(BaseScene):
     PADDING_RATIO = 0.03         # 3% of screen width for padding
     ACTIONS = ['move_left', 'move_right', 'jump']
 
-    def __init__(self, core):
-        super().__init__(core)
+    def __init__(self, core_manager):
+        super().__init__(core_manager)
 
         self.screen_w, self.screen_h = pygame.display.get_surface().get_size()
         self.font_size = max(16, int(self.screen_h * self.BASE_FONT_SIZE_RATIO))
@@ -17,25 +17,40 @@ class MenuScene(BaseScene):
         self.line_spacing = self.font_size + 8
 
         self.font = pygame.font.SysFont(None, self.font_size)
-        self.input_manager = core.input_manager
-        self.input_manager.clear_local_callbacks()
 
         self.selected_index = 0
         self.waiting_for_key = False
         self.message = "Use Up/Down to select, Enter to rebind, R to return"
 
-        self.input_manager.bind_key_down(pygame.K_m, self.exit_menu)
-
         self.blink_timer = 0
         self.blink_visible = True
 
-        self.setup_input()
+        # Initialize BaseScene and components
+        super().__init__(core_manager)
 
     """
-    Input Methods
-        setup_input
+    Configuration
+        _setup
+        enter
+        exit
+        _setup_input
     """
-    def setup_input(self):
+    def _setup(self):
+        """
+        Initialize components.
+        """
+        super()._setup()
+
+        # Initialize components
+        pass
+
+    def enter(self):
+        super().enter()
+
+    def exit(self):
+        super().exit()
+
+    def _setup_input(self):
         """
         Configure key bindings and action mappings.
         """
@@ -50,8 +65,11 @@ class MenuScene(BaseScene):
         }
         self.input_manager.load_config(input_config)
 
+    """
+    WIP
+    """
     def exit_menu(self):
-        self.scene_manager.return_scene()
+        self.scene_manager.pop_scene()
 
     def select_up(self):
         if not self.waiting_for_key:

@@ -79,26 +79,48 @@ class SceneManager(BaseManager):
         """
         Set a new scene.
         """
+        # Call exit on old scene
+        if self.current_scene:
+            self.current_scene.exit()
+
+        # Create and setup new scene
         self.previous_scene = self.current_scene
         self.current_scene = scene_class(self.core_manager)
+        self.current_scene.enter()
+
+        # Reset stack
         self.scenes = [self.current_scene]
 
     def push_scene(self, scene_class):
         """
         Push a new scene onto the stack.
         """
+        # Call exit on old scene
+        if self.current_scene:
+            self.current_scene.exit()
+
+        # Create and setup new scene
         self.previous_scene = self.current_scene
         self.current_scene = scene_class(self.core_manager)
+        self.current_scene.enter()
+
+        # Push it on stack
         self.scenes.append(self.current_scene)
 
     def pop_scene(self):
         """
         Pop the current scene from the stack.
         """
-        if not self.scenes:
-            return
+        # Exit current scene
+        self.current_scene.exit()
+
+        # Remove it
         self.scenes.pop()
+
+        # Switch back to previous if exists
         self.current_scene = self.scenes[-1] if self.scenes else None
+        if self.current_scene:
+            self.current_scene.enter()
 
     def clear_scenes(self):
         """
