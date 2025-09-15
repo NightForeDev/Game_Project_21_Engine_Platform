@@ -3,23 +3,36 @@
 import pygame
 from engine.base_scene import BaseScene
 from data.platformer_game.entities.player import Player
-from data.platformer_game.scenes.menu import MenuScene
+from data.platformer_game.scenes.menu_scene import MenuScene
 
 class InitialScene(BaseScene):
-    def __init__(self, core):
-        super().__init__(core)
+    def __init__(self, core_manager):
         self.player = Player(100, 300)
         self.ground_y = 400
-        self.input_manager = core.input_manager
-        self.input_manager.clear_local_callbacks()
 
-        self.setup_input()
+        # Initialize BaseScene and components
+        super().__init__(core_manager)
 
     """
-    Input Methods
-        setup_input
+    Configuration
+        enter
+        exit
+        _setup
+        _setup_input
     """
-    def setup_input(self):
+    def enter(self):
+        super().enter()
+
+    def exit(self):
+        super().exit()
+
+    def _setup(self):
+        """
+        Initialize components.
+        """
+        super()._setup()
+
+    def _setup_input(self):
         """
         Configure key bindings and action mappings.
         """
@@ -36,8 +49,11 @@ class InitialScene(BaseScene):
 
         self.input_manager.load_config(input_config)
 
+    """
+    WIP
+    """
     def open_menu(self):
-        self.core_manager.change_scene(MenuScene)
+        self.scene_manager.push_scene(MenuScene)
 
     """
     Operations

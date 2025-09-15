@@ -43,7 +43,7 @@ class CoreManager(BaseManager):
         Configuration:
             _setup(): Initialize components.
             load_config(config): Load settings from configuration.
-            setup_input(): Configure key bindings and action mappings.
+            _setup_input(): Configure key bindings and action mappings.
             setup_initial_engine(): Initialize systems and managers.
             setup_initial_scene(): Initialize scene instance.
 
@@ -98,7 +98,7 @@ class CoreManager(BaseManager):
     Configuration
         _setup
         load_config
-        setup_input
+        _setup_input
         setup_initial_engine
         setup_initial_scene
     """
@@ -123,7 +123,7 @@ class CoreManager(BaseManager):
         # Apply configuration values
         self.fps = self.config["fps"]
 
-    def setup_input(self):
+    def _setup_input(self):
         """
         Configure key bindings and action mappings.
         """
@@ -170,7 +170,7 @@ class CoreManager(BaseManager):
         self.running = True
 
         # Prepare remaining components
-        self.setup_input()
+        self._setup_input()
         self.scene_manager.set_scene(self.initial_scene_class)
 
     """
@@ -249,6 +249,7 @@ class CoreManager(BaseManager):
         """
         self.scene_manager.update(dt)
         self.debug_manager.update()
+        self.ui_manager.update()
         self.window_manager.update()
 
     def render(self, surface=None):
@@ -257,4 +258,5 @@ class CoreManager(BaseManager):
         """
         self.scene_manager.render(surface)
         self.debug_manager.draw(surface)
+        self.ui_manager.render(surface)
         self.window_manager.render()
