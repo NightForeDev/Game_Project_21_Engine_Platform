@@ -12,13 +12,13 @@ class InputManager(BaseManager):
             key_state (dict[int, bool]): Current pressed state of keyboard keys.
             mouse_state (dict[int, bool]): Current pressed state of mouse buttons.
 
-        Local Callbacks:
+        Local Bindings:
             local_key_down_callbacks (dict[int, Callable]): Functions bound to key press events locally.
             local_key_up_callbacks (dict[int, Callable]): Functions bound to key release events locally.
             local_mouse_down_callbacks (dict[int, Callable]): Functions bound to mouse press events locally.
             local_mouse_up_callbacks (dict[int, Callable]): Functions bound to mouse release events locally.
 
-        Global Callbacks:
+        Global Bindings:
             global_key_down_callbacks (dict[int, Callable]): Functions bound to key press events globally.
             global_key_up_callbacks (dict[int, Callable]): Functions bound to key release events globally.
             global_mouse_down_callbacks (dict[int, Callable]): Functions bound to mouse press events globally.
@@ -28,15 +28,17 @@ class InputManager(BaseManager):
             action_to_key (dict[str, int]): Maps action names to keyboard keys.
             action_to_mouse (dict[str, int]): Maps action names to mouse buttons.
 
+        Persisted Input:
+            persisted_input (dict): Stores all mappings and bindings for persistence across reloads.
+
     Methods:
         Configuration:
             _setup(): Initialize components.
             load_config(config): Load settings from configuration.
 
-        Input Utilities:
-            is_action_active(action): Check if an action is currently active (held).
-            clear_local_callbacks(): Remove all local callbacks.
-            clear_all_callbacks(): Remove all callbacks.
+        Mapping Methods:
+            map_action_to_key(key, action): Map an action to a keyboard key.
+            map_action_to_mouse(button, action): Map an action to a mouse button.
 
         Binding Methods:
             bind_key_down(key, callback, global_=False): Bind a callback to a key press.
@@ -44,9 +46,10 @@ class InputManager(BaseManager):
             bind_mouse_down(button, callback, global_=False): Bind a callback to a mouse button press.
             bind_mouse_up(button, callback, global_=False): Bind a callback to a mouse button release.
 
-        Mapping Methods:
-            map_action_to_key(key, action): Map an action to a keyboard key.
-            map_action_to_mouse(button, action): Map an action to a mouse button.
+        Input Utilities:
+            is_action_active(action): Check if an action is currently active (held).
+            clear_local_callbacks(): Remove all local callbacks.
+            clear_all_callbacks(): Remove all callbacks.
 
         Debug:
             debug(): Print debug information.
@@ -59,13 +62,13 @@ class InputManager(BaseManager):
         self.key_state = {}
         self.mouse_state = {}
 
-        # Local Callbacks
+        # Local Bindings
         self.local_key_down_callbacks = {}
         self.local_key_up_callbacks = {}
         self.local_mouse_down_callbacks = {}
         self.local_mouse_up_callbacks = {}
 
-        # Global Callbacks
+        # Global Bindings
         self.global_key_down_callbacks = {}
         self.global_key_up_callbacks = {}
         self.global_mouse_down_callbacks = {}
@@ -74,6 +77,9 @@ class InputManager(BaseManager):
         # Action Mappings
         self.action_to_key = {}
         self.action_to_mouse = {}
+
+        # Persisted Input
+        self.persisted_input = {"bind": [], "map": {}}
 
         # Initialize BaseManager and components
         super().__init__(core_manager, app_config)
@@ -98,27 +104,154 @@ class InputManager(BaseManager):
         if config is None:
             return
 
+        # Bind callbacks
+        for bind in config.get("bind", []):
+            # Get binding info
+            callback = bind["callback"]
+            global_ = bind.get("global", False)
+
+            # Check persisted input
+            persisted_bind = None
+            for b in self.persisted_input["bind"]:
+                if b["callback"] == callback:
+                    persisted_bind = b
+                    break
+
+            if persisted_bind:
+                key = persisted_bind.get("key")
+                button = persisted_bind.get("button")
+
+            # Fallback to config
+            else:
+                key = bind.get("key")
+                button = bind.get("button")
+
+            # Apply bindings
+            if key and callback:
+                self.bind_key_down(key, callback, global_=global_)
+            if button and callback:
+                self.bind_mouse_down(button, callback, global_=global_)
+
+            # WIP
+            # Add 'up' event support
+
         # Map actions
         for action, mapping in config.get("map", {}).items():
-            key = mapping.get("key")
-            mouse = mapping.get("mouse")
+            # Check persisted input
+            if action in self.persisted_input.get("map", {}):
+                key = self.persisted_input["map"][action].get("key")
+                mouse = self.persisted_input["map"][action].get("mouse")
 
+            # Fallback to config
+            else:
+                key = mapping.get("key")
+                mouse = mapping.get("mouse")
+
+            # Apply mappings
             if key is not None:
                 self.map_action_to_key(key, action)
             if mouse is not None:
                 self.map_action_to_mouse(mouse, action)
 
-        # Bind callbacks
-        for bind in config.get("bind", []):
-            key = bind.get("key")
-            button = bind.get("button")
-            callback = bind.get("callback")
-            global_ = bind.get("global", False)
+    """
+    Binding Methods
+        bind_key_down
+        bind_key_up
+        bind_mouse_down
+        bind_mouse_up
+    """
+    def bind_key_down(self, key, callback, global_=False):
+        """
+        Bind a callback to a key press.
+        """
+        # Register
+        if global_:
+            self.global_key_down_callbacks[key] = callback
+        else:
+            self.local_key_down_callbacks[key] = callback
 
-            if key is not None and callback is not None:
-                self.bind_key_down(key, callback, global_=global_)
-            if button is not None and callback is not None:
-                self.bind_mouse_down(button, callback, global_=global_)
+        # Persist
+        self.persisted_input["bind"].append({
+            "key": key,
+            "callback": callback,
+            "global": global_,
+        })
+
+    def bind_key_up(self, key, callback, global_=False):
+        """
+        Bind a callback to a key release.
+        """
+        # Register
+        if global_:
+            self.global_key_up_callbacks[key] = callback
+        else:
+            self.local_key_up_callbacks[key] = callback
+
+        # Persist
+        self.persisted_input["bind"].append({
+            "key": key,
+            "callback": callback,
+            "global": global_,
+        })
+
+    def bind_mouse_down(self, button, callback, global_=False):
+        """
+        Bind a callback to a mouse button press.
+        """
+        # Register
+        if global_:
+            self.global_mouse_down_callbacks[button] = callback
+        else:
+            self.local_mouse_down_callbacks[button] = callback
+
+        # Persist
+        self.persisted_input["bind"].append({
+            "button": button,
+            "callback": callback,
+            "global": global_,
+        })
+
+    def bind_mouse_up(self, button, callback, global_=False):
+        """
+        Bind a callback to a mouse button release.
+        """
+        # Register
+        if global_:
+            self.global_mouse_up_callbacks[button] = callback
+        else:
+            self.local_mouse_up_callbacks[button] = callback
+
+        # Persist
+        self.persisted_input["bind"].append({
+            "button": button,
+            "callback": callback,
+            "global": global_,
+        })
+
+    """
+    Mapping Methods
+        map_action_to_key
+        map_action_to_mouse
+    """
+    def map_action_to_key(self, key, action):
+        """
+        Bind an action to a keyboard key.
+        """
+        # Register
+        self.action_to_key[action] = key
+
+        # Persist
+        self.persisted_input["map"][action] = {"key": key}
+
+    def map_action_to_mouse(self, button, action):
+        """
+        Bind an action to a mouse button.
+        """
+        # Register
+        self.action_to_mouse[button] = action
+
+        # Persist
+        self.persisted_input["map"][action] = {"mouse": button}
 
     """
     Input Utilities
@@ -163,66 +296,6 @@ class InputManager(BaseManager):
         self.global_key_up_callbacks.clear()
         self.global_mouse_down_callbacks.clear()
         self.global_mouse_up_callbacks.clear()
-
-    """
-    Binding Methods
-        bind_key_down
-        bind_key_up
-        bind_mouse_down
-        bind_mouse_up
-    """
-    def bind_key_down(self, key, callback, global_=False):
-        """
-        Bind a callback to a key press.
-        """
-        if global_:
-            self.global_key_down_callbacks[key] = callback
-        else:
-            self.local_key_down_callbacks[key] = callback
-
-    def bind_key_up(self, key, callback, global_=False):
-        """
-        Bind a callback to a key release.
-        """
-        if global_:
-            self.global_key_up_callbacks[key] = callback
-        else:
-            self.local_key_up_callbacks[key] = callback
-
-    def bind_mouse_down(self, button, callback, global_=False):
-        """
-        Bind a callback to a mouse button press.
-        """
-        if global_:
-            self.global_mouse_down_callbacks[button] = callback
-        else:
-            self.local_mouse_down_callbacks[button] = callback
-
-    def bind_mouse_up(self, button, callback, global_=False):
-        """
-        Bind a callback to a mouse button release.
-        """
-        if global_:
-            self.global_mouse_up_callbacks[button] = callback
-        else:
-            self.local_mouse_up_callbacks[button] = callback
-
-    """
-    Mapping Methods
-        map_action_to_key
-        map_action_to_mouse
-    """
-    def map_action_to_key(self, key, action):
-        """
-        Bind an action to a keyboard key.
-        """
-        self.action_to_key[action] = key
-
-    def map_action_to_mouse(self, mouse, action):
-        """
-        Bind an action to a mouse button.
-        """
-        self.action_to_mouse[action] = mouse
 
     """
     Debug
