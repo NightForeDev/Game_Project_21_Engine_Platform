@@ -12,6 +12,10 @@ class InputManager(BaseManager):
             key_state (dict[int, bool]): Current pressed state of keyboard keys.
             mouse_state (dict[int, bool]): Current pressed state of mouse buttons.
 
+        Input Attributes:
+            bindings (...): callback . event driven
+            mappings (...): action . state driven
+
         Local Bindings:
             local_key_down_callbacks (dict[int, Callable]): Functions bound to key press events locally.
             local_key_up_callbacks (dict[int, Callable]): Functions bound to key release events locally.
@@ -62,6 +66,24 @@ class InputManager(BaseManager):
         self.key_state = {}
         self.mouse_state = {}
 
+        # Input Attributes
+        self.bindings = {
+            "local": {
+                "key_down": {},
+                "key_up": {},
+                "mouse_down": {},
+                "mouse_up": {}
+            },
+            "global": {
+                "key_down": {},
+                "key_up": {},
+                "mouse_down": {},
+                "mouse_up": {}
+            }
+        }
+
+        self.mappings = {}
+
         # Local Bindings
         self.local_key_down_callbacks = {}
         self.local_key_up_callbacks = {}
@@ -104,9 +126,17 @@ class InputManager(BaseManager):
         if config is None:
             return
 
-        # Bind callbacks
+        # Process callback bindings
         for bind in config.get("bind", []):
             # Get binding info
+            callback = bind["callback"]
+            scope = "global" if bind.get("global", False) else "local"
+
+            # Apply bindings
+            for event_type in ["key_down", "key_up", "mouse_down", "mouse_up"]:
+                code = bind.get(event_type)
+                self.bind_callback(scope, event_type, code, callback)
+
             callback = bind["callback"]
             global_ = bind.get("global", False)
 
@@ -135,8 +165,12 @@ class InputManager(BaseManager):
             # WIP
             # Add 'up' event support
 
-        # Map actions
+        # Process action mappings
         for action, mapping in config.get("map", {}).items():
+            # Apply mappings
+            for device, code in mapping.items():
+                self.map_action(action, device, code)
+
             # Check persisted input
             if action in self.persisted_input.get("map", {}):
                 key = self.persisted_input["map"][action].get("key")
@@ -152,6 +186,43 @@ class InputManager(BaseManager):
                 self.map_action_to_key(key, action)
             if mouse is not None:
                 self.map_action_to_mouse(mouse, action)
+
+    def bind_callback(self, scope, event_type, code, callback):
+        """
+        Bind a callback to an input event.
+
+        Args:
+            scope (str): Binding scope. Must be 'local' or 'global'.
+            event_type (str): Type of input event. Must be 'key_down', 'key_up', 'mouse_down', 'mouse_up'.
+            code (int): Key or mouse button code.
+            callback (callable): Function to call when the event is triggered.
+        """
+        # Validate arguments
+        if scope not in self.bindings:
+            raise ValueError(f"Invalid scope '{scope}', expected 'local' or 'global'.")
+        if event_type not in self.bindings[scope]:
+            raise ValueError(f"Invalid event '{event_type}', expected key_down/up or mouse_down/up.")
+        if not callable(callback):
+            raise TypeError(f"Callback must be callable, got {type(callback).__name__}.")
+
+        # Register the callback
+        self.bindings[scope][event_type][code] = callback
+
+    def map_action(self, action, device_type, code):
+        """
+        Map an action to an input state.
+
+        Args:
+            action (str): Name of the action.
+            device_type (str): Type of input device. Must be 'key' or 'mouse'.
+            code (int): Key or mouse button code.
+        """
+        # Validate arguments
+        if device_type not in ["key", "mouse"]:
+            raise ValueError(f"Invalid device '{device_type}', expected 'key' or 'mouse'.")
+
+        # Register the action
+        self.mappings[action] = {device_type: code}
 
     """
     Binding Methods
