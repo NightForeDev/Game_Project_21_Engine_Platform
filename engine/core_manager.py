@@ -220,6 +220,11 @@ class CoreManager(BaseManager):
         print(f"total_play_time={self.total_play_time:.2f}")
         print()
 
+        self.input_manager.debug()
+        self.scene_manager.debug()
+        self.ui_manager.debug()
+        self.window_manager.debug()
+
     """
     Operations
         events
