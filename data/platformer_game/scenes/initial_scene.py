@@ -38,7 +38,7 @@ class InitialScene(BaseScene):
         """
         input_config = {
             "bind": [
-                {"key": pygame.K_m, "callback": self.open_menu}
+                {"key_down": pygame.K_m, "callback": lambda: self.scene_manager.push_scene(MenuScene)}
             ],
             "map": {
                 "move_left": {"key": pygame.K_LEFT},
@@ -49,11 +49,6 @@ class InitialScene(BaseScene):
 
         self.input_manager.load_config(input_config)
 
-    """
-    WIP
-    """
-    def open_menu(self):
-        self.scene_manager.push_scene(MenuScene)
 
     """
     Operations

@@ -56,9 +56,9 @@ class InitialScene(BaseScene):
         """
         input_config = {
             "bind": [
-                {"key": pygame.K_UP, "callback": self.select_up},
-                {"key": pygame.K_DOWN, "callback": self.select_down},
-                {"key": pygame.K_RETURN, "callback": self.select_confirm}
+                {"key_down": pygame.K_UP, "callback": self.select_up},
+                {"key_down": pygame.K_DOWN, "callback": self.select_down},
+                {"key_down": pygame.K_RETURN, "callback": self.select_confirm}
             ]
         }
         self.input_manager.load_config(input_config)

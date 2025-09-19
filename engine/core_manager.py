@@ -129,18 +129,14 @@ class CoreManager(BaseManager):
         """
         input_config = {
             "bind": [
-                {"key": pygame.K_ESCAPE, "callback": self.quit_game, "global": True},
-                {"key": pygame.K_F1, "callback": self.debug_manager.toggle, "global": True},
-                {"key": pygame.K_F3, "callback": self.window_manager.toggle_borderless, "global": True},
-                {"key": pygame.K_F4, "callback": self.window_manager.toggle_maximized, "global": True},
-                {"key": pygame.K_F5, "callback": self.setup_initial_engine, "global": True},
-                {"key": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
-                {"key": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
-
-                {"key": pygame.K_F10, "callback": self.input_manager.debug, "global": True},
+                {"key_down": pygame.K_ESCAPE, "callback": self.quit_game, "global": True},
+                {"key_down": pygame.K_F1, "callback": self.debug_manager.toggle, "global": True},
+                {"key_down": pygame.K_F3, "callback": self.window_manager.toggle_borderless, "global": True},
+                {"key_down": pygame.K_F4, "callback": self.window_manager.toggle_maximized, "global": True},
+                {"key_down": pygame.K_F5, "callback": self.setup_initial_engine, "global": True},
+                {"key_down": pygame.K_F6, "callback": self.window_manager.toggle_resizable, "global": True},
+                {"key_down": pygame.K_F11, "callback": self.window_manager.toggle_fullscreen, "global": True},
             ],
-            "map": {
-            }
         }
         self.input_manager.load_config(input_config)
 

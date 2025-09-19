@@ -56,11 +56,11 @@ class MenuScene(BaseScene):
         """
         input_config = {
             "bind": [
-                {"key": pygame.K_m, "callback": self.exit_menu},
-                {"key": pygame.K_UP, "callback": self.select_up},
-                {"key": pygame.K_DOWN, "callback": self.select_down},
-                {"key": pygame.K_RETURN, "callback": self.select_confirm},
-                {"key": pygame.K_r, "callback": self.cancel_rebind},
+                {"key_down": pygame.K_m, "callback": self.exit_menu},
+                {"key_down": pygame.K_UP, "callback": self.select_up},
+                {"key_down": pygame.K_DOWN, "callback": self.select_down},
+                {"key_down": pygame.K_RETURN, "callback": self.select_confirm},
+                {"key_down": pygame.K_r, "callback": self.cancel_rebind},
             ]
         }
         self.input_manager.load_config(input_config)
@@ -90,19 +90,25 @@ class MenuScene(BaseScene):
         self.message = "Rebinding cancelled. Use Up/Down to select, Enter to rebind, M to return"
 
     def assign_key(self, event):
+        """
+        Assign a new key to the currently selected action.
+        """
         if not self.waiting_for_key:
             return
 
+        # Cancel rebinding
         if event.key == pygame.K_ESCAPE:
             self.cancel_rebind()
             return
 
+        # Ignore Enter
         if event.key == pygame.K_RETURN:
             return
 
+        # Rebind the key
         new_key = event.key
         action = self.ACTIONS[self.selected_index]
-        self.input_manager.map_action_to_key(new_key, action)
+        self.input_manager.map_action(action, "key", new_key)
         self.message = f"Rebound '{action}' to {pygame.key.name(new_key)}"
         self.waiting_for_key = False
 
@@ -146,8 +152,9 @@ class MenuScene(BaseScene):
         y = self.padding + msg_surf.get_height() + (self.font_size // 2)
 
         for i, action in enumerate(self.ACTIONS):
-            key = self.input_manager.action_to_key.get(action)
-            key_name = pygame.key.name(key) if key else "Unbound"
+            mapping = self.input_manager.mappings.get(action, {})
+            key_code = mapping.get("key")
+            key_name = pygame.key.name(key_code) if key_code else "Unbound"
             text = f"{action}: {key_name}"
 
             color = (255, 255, 0) if i == self.selected_index else (180, 180, 180)
