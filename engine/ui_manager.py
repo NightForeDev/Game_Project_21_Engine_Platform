@@ -13,9 +13,6 @@ class UIManager(BaseManager):
         UI Attributes:
             elements (dict[str, UIElement]): Dictionary of UI elements by name.
 
-        State Attributes:
-            active (bool): Whether the UIManager is active.
-
     Methods:
         Configuration:
             _setup(): Initialize components.
@@ -34,9 +31,6 @@ class UIManager(BaseManager):
     def __init__(self, core_manager=None, app_config=None):
         # UI Attributes
         self.elements = {}
-
-        # State Attributes
-        self.active = True
 
         # Initialize BaseManager and components
         super().__init__(core_manager, app_config)
@@ -91,7 +85,7 @@ class UIManager(BaseManager):
         """
         Print debug information.
         """
-        print(f"{self.class_name} Active: {self.active}")
+        print(f"{self.class_name}")
         print(f"Registered Elements: {list(self.elements.keys())}")
         for k, e in self.elements.items():
             print(f"  {k}: {e}")
@@ -106,9 +100,6 @@ class UIManager(BaseManager):
         """
         Update components.
         """
-        if not self.active:
-            return
-
         for element in list(self.elements.values()):
             element.update()
 
@@ -116,8 +107,5 @@ class UIManager(BaseManager):
         """
         Render components.
         """
-        if not self.active:
-            return
-
         for element in list(self.elements.values()):
             element.render(surface)

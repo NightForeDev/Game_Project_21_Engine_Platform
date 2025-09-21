@@ -22,8 +22,8 @@ class CoreManager(BaseManager):
 
         Manager Attributes:
             core_manager (CoreManager): Manage application.
-            debug_manager (DebugManager): Manage debug overlay and diagnostics.
-            input_manager (InputManager): Manage input state and callbacks.
+            debug_manager (DebugManager): Manage debug overlay, diagnostics, and performance metrics.
+            input_manager (InputManager): Manage input state, callback bindings, and action mappings.
             scene_manager (SceneManager): Manage active scenes.
             ui_manager (UIManager): Manage interface elements.
             window_manager (WindowManager): Manage window and rendering surface.
@@ -162,6 +162,13 @@ class CoreManager(BaseManager):
         self.ui_manager = UIManager(core_manager=self, app_config=self.app_config)
         self.window_manager = WindowManager(core_manager=self, app_config=self.app_config, clock=self.clock)
 
+        # Refresh sibling references
+        self.debug_manager.update_manager_refs()
+        self.input_manager.update_manager_refs()
+        self.scene_manager.update_manager_refs()
+        self.ui_manager.update_manager_refs()
+        self.window_manager.update_manager_refs()
+
         # State Attributes
         self.running = True
 
@@ -216,6 +223,7 @@ class CoreManager(BaseManager):
         print(f"total_play_time={self.total_play_time:.2f}")
         print()
 
+        self.debug_manager.debug()
         self.input_manager.debug()
         self.scene_manager.debug()
         self.ui_manager.debug()
@@ -249,7 +257,7 @@ class CoreManager(BaseManager):
         Update components.
         """
         self.scene_manager.update(dt)
-        self.debug_manager.update()
+        self.debug_manager.update(dt)
         self.ui_manager.update()
         self.window_manager.update()
 
@@ -258,6 +266,6 @@ class CoreManager(BaseManager):
         Render components.
         """
         self.scene_manager.render(surface)
-        self.debug_manager.draw(surface)
+        self.debug_manager.render(surface)
         self.ui_manager.render(surface)
         self.window_manager.render()
