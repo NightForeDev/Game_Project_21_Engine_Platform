@@ -26,6 +26,7 @@ class UIButton(UIElement):
         self.text_color = text_color
         self.callback = callback
         self.highlighted = highlighted
+        self.focused = False
 
         # Internal state for edge detection of mouse button
         self._mouse_was_down = False
@@ -54,11 +55,15 @@ class UIButton(UIElement):
         # update edge state
         self._mouse_was_down = mouse_down
 
+    def set_focus(self, state):
+        self.focused = state
+
     def render(self, surface):
         if not self.visible:
             return
 
         # base background
+        self.highlighted = self.focused
         bg = self.bg_color
         if self.highlighted:
             # slightly brighter when highlighted

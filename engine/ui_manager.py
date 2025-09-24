@@ -46,6 +46,11 @@ class UIManager(BaseManager):
 
         Debug:
             debug(): Print debug information.
+
+        Operations:
+            events(events): Process components events.
+            update(dt): Update components.
+            render(surface): Render components.
     """
     # Defaults
     DEFAULT_LAYER = "ui"
@@ -270,15 +275,21 @@ class UIManager(BaseManager):
         for layer in self.layer_order:
             for n in self.layers.get(layer, []):
                 el = self.elements.get(n)
-                if el and getattr(el, "focusable", False):
-                    names.append(n)
+                # if el and getattr(el, "focusable", False):
+                    # names.append(n)
+                names.append(n)
         return names
 
     def focus_next(self):
-        """Move focus to the next focusable element in order (wraps)."""
+        """
+        ...
+        """
         names = self._focusable_names_in_order()
+        print(names)
         if not names:
             return
+
+
         if self.focus_name not in names:
             self.focus(names[0])
             return
@@ -399,6 +410,23 @@ class UIManager(BaseManager):
                 pass
 
     """
+    Debug
+        debug
+    """
+    def debug(self):
+        """
+        Print debug information.
+        """
+        print(f"{self.class_name}")
+        print(f"Layers: {self.layer_order}")
+        for layer in self.layer_order:
+            names = self.layers.get(layer, [])
+            print(f"  {layer}: {names}")
+        print(f"Focus: {self.focus_name}")
+        print(f"Elements: {list(self.elements.keys())}")
+        print()
+
+    """
     Operations
         events
         update
@@ -448,20 +476,3 @@ class UIManager(BaseManager):
 
                 # Render element
                 element.render(surface)
-
-    """
-    Debug
-        debug
-    """
-    def debug(self):
-        """
-        Print debug information.
-        """
-        print(f"{self.class_name}")
-        print(f"Layers: {self.layer_order}")
-        for layer in self.layer_order:
-            names = self.layers.get(layer, [])
-            print(f"  {layer}: {names}")
-        print(f"Focus: {self.focus_name}")
-        print(f"Elements: {list(self.elements.keys())}")
-        print()
