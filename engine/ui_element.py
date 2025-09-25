@@ -15,10 +15,14 @@ class UIElement:
         update(): Update the element.
         render(surface): Render the element to the given surface.
     """
-    def __init__(self, name: str, x=0, y=0, w=100, h=30, visible=True, **kwargs):
+    def __init__(self, name: str, x=0, y=0, w=100, h=30, visible=True, focusable=None, **kwargs):
         self.name = name
         self.rect = pygame.Rect(int(x), int(y), int(w), int(h))
         self.visible = visible
+
+        # WIP
+        self.disabled = None
+        self.focusable = focusable
 
     def update(self):
         """Update element state."""

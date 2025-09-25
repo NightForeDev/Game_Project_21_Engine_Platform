@@ -66,7 +66,8 @@ class InitialScene(BaseScene):
         """
         # Title label
         self.ui_manager.create_element(
-            "title", "UILabel",
+            name="title",
+            element_type="UILabel",
             text="Select a game to launch:",
             x=20, y=10, w=600, h=40,
             font=self.font,

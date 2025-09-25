@@ -218,118 +218,158 @@ class UIManager(BaseManager):
                 self.layer_order.append(l)
 
     """
-    Focus & navigation
+    Focus Management
         focus
+        _focusable_names_in_order
+        focus_first
+        focus_last
         focus_next
         focus_prev
         activate_focused
     """
     def focus(self, name):
         """
-        Set focus to the element `name`. Pass None to clear focus.
-
-        Calls on_blur / on_focus hooks if present.
+        Set focus to a specific element by name.
         """
-        # Clear previous
-        prev = self.focus_name
-        if prev and prev in self.elements:
-            prev_el = self.elements[prev]
-            if hasattr(prev_el, "on_blur"):
-                try:
-                    prev_el.on_blur()
-                except Exception:
-                    pass
-            if hasattr(prev_el, "set_focus"):
-                try:
-                    prev_el.set_focus(False)
-                except Exception:
-                    pass
+        # Fetch previously focused element
+        previous_name = self.focus_name
+        if previous_name and previous_name in self.elements:
+            previous_element = self.elements[previous_name]
 
-        # Set new
+            # Update focus state of the previous element
+            if hasattr(previous_element, "set_focus"):
+                previous_element.set_focus(False)
+
+        # Clear focus if None is passed
         if name is None:
             self.focus_name = None
             return
 
+        # Early return if not applicable
         if name not in self.elements:
             return
 
-        new_el = self.elements[name]
+        # Set focus to the new element
+        new_element = self.elements[name]
         self.focus_name = name
-        if hasattr(new_el, "on_focus"):
-            try:
-                new_el.on_focus()
-            except Exception:
-                pass
-        if hasattr(new_el, "set_focus"):
-            try:
-                new_el.set_focus(True)
-            except Exception:
-                pass
+
+        # Call 'on_focus' hook if available
+        if hasattr(new_element, "on_focus"):
+            new_element.on_focus()
+
+        # Update focus state of the new element
+        if hasattr(new_element, "set_focus"):
+            new_element.set_focus(True)
 
     def _focusable_names_in_order(self):
         """
-        Return list of focusable element names in visual order.
-        Visual order: layer_order, and within a layer insertion order.
+        Return a list of element names that can receive focus in visual order.
         """
         names = []
+
+        # Iterate through layers in visual order
         for layer in self.layer_order:
-            for n in self.layers.get(layer, []):
-                el = self.elements.get(n)
-                # if el and getattr(el, "focusable", False):
-                    # names.append(n)
-                names.append(n)
+            # Iterate through element names in this layer
+            for name in self.layers.get(layer, []):
+                element = self.elements.get(name)
+
+                # Element must exist and be marked focusable
+                if element and getattr(element, "focusable", False):
+                    # Skip invisible or disabled elements
+                    if not getattr(element, "visible", True):
+                        continue
+                    if getattr(element, "disabled", False):
+                        continue
+
+                    # Append to ordered list
+                    names.append(name)
         return names
 
-    def focus_next(self):
+    def focus_first(self):
         """
-        ...
+        Move focus to the first focusable element in visual order.
         """
+        # Collect focusable element names in order
         names = self._focusable_names_in_order()
-        print(names)
+
+        # Early return if not applicable
         if not names:
             return
 
+        # Skip invisible or disabled elements
+        self.focus(names[0])
 
-        if self.focus_name not in names:
-            self.focus(names[0])
+    def focus_last(self):
+        """
+        Move focus to the last focusable element in visual order.
+        """
+        # Collect focusable element names in order
+        names = self._focusable_names_in_order()
+
+        # Early return if not applicable
+        if not names:
             return
+
+        # Set focus to the last element
+        self.focus(names[-1])
+
+    def focus_next(self):
+        """
+        Move focus to the next focusable element in visual order.
+        """
+        # Collect focusable element names in order
+        names = self._focusable_names_in_order()
+
+        # Early return if not applicable
+        if not names:
+            return
+
+        # If no element currently has focus, start with the first
+        if self.focus_name not in names:
+            self.focus_first()
+            return
+
+        # Advance focus to the next element
         idx = names.index(self.focus_name)
         self.focus(names[(idx + 1) % len(names)])
 
     def focus_prev(self):
-        """Move focus to the previous focusable element in order (wraps)."""
+        """
+        Move focus to the previous focusable element in visual order.
+        """
+        # Collect focusable element names in order
         names = self._focusable_names_in_order()
+
+        # Early return if not applicable
         if not names:
             return
+
+        # If no element currently has focus, start with the last
         if self.focus_name not in names:
-            self.focus(names[-1])
+            self.focus_last()
             return
+
+        # Advance focus to the previous element
         idx = names.index(self.focus_name)
         self.focus(names[(idx - 1) % len(names)])
 
     def activate_focused(self):
         """
-        Trigger the focused element's activation hook (if any).
-        e.g. button press.
+        Trigger the currently focused element's callback function.
         """
+        # Early return if not applicable
         if not self.focus_name:
             return
-        el = self.elements.get(self.focus_name)
-        if not el:
+
+        # Fetch the focused element
+        element = self.elements.get(self.focus_name)
+        if not element:
             return
-        if hasattr(el, "on_activate"):
-            try:
-                el.on_activate()
-                return
-            except Exception:
-                pass
-        # Fallback to generic callback attribute
-        cb = getattr(el, "callback", None)
-        if callable(cb):
-            try:
-                cb()
-            except Exception:
-                pass
+
+        # Call the element activation method
+        callback = getattr(element, "callback", None)
+        if callable(callback):
+            callback()
 
     """
     Element Handling
@@ -356,11 +396,9 @@ class UIManager(BaseManager):
                 # Check if cursor is over element
                 hit = False
                 if hasattr(element, "rect"):
-                    try:
-                        hit = element.rect.collidepoint(pos)
-                    except Exception:
-                        hit = False
+                    hit = element.rect.collidepoint(pos)
 
+                # Return first element hit
                 if hit:
                     return element
 
@@ -377,10 +415,7 @@ class UIManager(BaseManager):
 
         # Call hover callback
         if hasattr(element, "on_hover"):
-            try:
-                element.on_hover(pos)
-            except Exception:
-                pass
+            element.on_hover(pos)
 
     def _handle_click(self, pos):
         """
@@ -397,17 +432,11 @@ class UIManager(BaseManager):
 
         # Call click callback
         if hasattr(element, "on_click"):
-            try:
-                element.on_click(pos)
-            except Exception:
-                pass
+            element.on_click(pos)
 
         # Call activate callback
         if hasattr(element, "on_activate"):
-            try:
-                element.on_activate()
-            except Exception:
-                pass
+            element.on_activate()
 
     """
     Debug
