@@ -100,12 +100,6 @@ class UIManager(BaseManager):
         if not config:
             return
 
-        # Allow overriding layer order
-        if "layer_order" in config:
-            order = config["layer_order"]
-            if isinstance(order, list):
-                self.set_layer_order(order)
-
         # Create elements declared in config
         elements_cfg = config.get("elements", {})
         for name, element_cfg in elements_cfg.items():
@@ -126,7 +120,6 @@ class UIManager(BaseManager):
         create_element
         remove_element
         get_element
-        set_layer_order
     """
     def create_element(self, name: str, element_type: str, layer: str = None, **kwargs):
         """
@@ -134,37 +127,35 @@ class UIManager(BaseManager):
 
         Args:
             name (str): Identifier for the element.
-            element_type (str): One of keys in ELEMENT_TYPES (e.g., "UIButton").
-            layer (str): Layer name where element belongs (render/update order).
-            **kwargs: forwarded to element constructor.
+            element_type (str): Element type key from ELEMENT_TYPES (e.g., "UIButton").
+            layer (str, optional): Target layer for rendering/updating. Defaults to DEFAULT_LAYER.
+            **kwargs: Additional arguments forwarded to the element constructor.
 
         Returns:
             UIElement: The created element instance.
         """
-        # Resolve defaults
-        if layer is None:
-            layer = self.DEFAULT_LAYER
+        # Resolve target layer
+        layer = layer or self.DEFAULT_LAYER
 
-        # Choose element class
+        # Resolve element class
         element_class = self.ELEMENT_TYPES.get(element_type, UIElement)
 
-        # Instantiate element (ensure name is passed)
+        # Instantiate element
         element = element_class(name=name, **kwargs)
 
         # Register element
         self.elements[name] = element
 
-        # Ensure layer exists
+        # Ensure layer exists and is tracked in order
         if layer not in self.layers:
             self.layers[layer] = []
-            # If new layer not in order, append at end
             if layer not in self.layer_order:
                 self.layer_order.append(layer)
 
-        # Insert at end of layer (stack order; later items draw on top)
+        # Insert into layer stack
         self.layers[layer].append(name)
 
-        # If element is focusable and no focus yet, set initial focus
+        # Set initial focus if applicable
         if getattr(element, "focusable", False) and self.focus_name is None:
             self.focus(name)
 
@@ -173,49 +164,32 @@ class UIManager(BaseManager):
     def remove_element(self, name: str):
         """
         Remove a registered element by name.
-
-        Args:
-            name (str): Element identifier.
         """
-        el = self.elements.pop(name, None)
-        if not el:
+        # Remove element from all layers
+        element = self.elements.pop(name, None)
+        if not element:
             return
 
-        # Remove from layers
-        for layer, names in list(self.layers.items()):
+        # Remove element from all layers
+        for names in self.layers.values():
             if name in names:
                 names.remove(name)
-                if not names:
-                    # Optionally keep empty layers; we do not delete to keep ordering stable
-                    pass
 
-        # Clear focus if needed
+        # Clear focus
         if self.focus_name == name:
             self.focus(None)
 
-        # If element has a cleanup hook, call it
-        if hasattr(el, "destroy"):
-            try:
-                el.destroy()
-            except Exception:
-                pass
-
-    def get_element(self, name: str):
-        """Return element instance by name or None."""
-        return self.elements.get(name)
-
-    def set_layer_order(self, order_list):
+    def get_element(self, name, *, strict=False):
         """
-        Replace layer order.
-
-        Args:
-            order_list (list[str]): New layer order; layers not present are appended.
+        Return element instance by name.
         """
-        self.layer_order = list(order_list)
-        # Ensure existing layers are included
-        for l in list(self.layers.keys()):
-            if l not in self.layer_order:
-                self.layer_order.append(l)
+        # Lookup in element registry
+        element = self.elements.get(name)
+
+        # Lookup in element registry
+        if not element and strict:
+            raise KeyError(f"UI element not found: {name}")
+        return element
 
     """
     Focus Management
@@ -234,7 +208,7 @@ class UIManager(BaseManager):
         # Fetch previously focused element
         previous_name = self.focus_name
         if previous_name and previous_name in self.elements:
-            previous_element = self.elements[previous_name]
+            previous_element = self.get_element(previous_name)
 
             # Update focus state of the previous element
             if hasattr(previous_element, "set_focus"):
@@ -250,7 +224,7 @@ class UIManager(BaseManager):
             return
 
         # Set focus to the new element
-        new_element = self.elements[name]
+        new_element = self.get_element(name)
         self.focus_name = name
 
         # Call 'on_focus' hook if available
@@ -271,7 +245,7 @@ class UIManager(BaseManager):
         for layer in self.layer_order:
             # Iterate through element names in this layer
             for name in self.layers.get(layer, []):
-                element = self.elements.get(name)
+                element = self.get_element(name)
 
                 # Element must exist and be marked focusable
                 if element and getattr(element, "focusable", False):
@@ -362,7 +336,7 @@ class UIManager(BaseManager):
             return
 
         # Fetch the focused element
-        element = self.elements.get(self.focus_name)
+        element = self.get_element(self.focus_name)
         if not element:
             return
 
@@ -385,7 +359,7 @@ class UIManager(BaseManager):
         for layer in reversed(self.layer_order):
             # Iterate elements in layer from topmost to bottom
             for name in reversed(self.layers.get(layer, [])):
-                element = self.elements.get(name)
+                element = self.get_element(name)
                 if not element:
                     continue
 
@@ -479,7 +453,7 @@ class UIManager(BaseManager):
             # Iterate through element names in this layer
             for name in list(self.layers.get(layer, [])):
                 # Fetch element from registry
-                element = self.elements.get(name)
+                element = self.get_element(name)
                 if not element:
                     continue
 
@@ -495,7 +469,7 @@ class UIManager(BaseManager):
             # Iterate through element names in this layer
             for name in list(self.layers.get(layer, [])):
                 # Fetch element
-                element = self.elements.get(name)
+                element = self.get_element(name)
                 if not element:
                     continue
 
